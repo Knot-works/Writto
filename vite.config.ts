@@ -3,8 +3,8 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
-export default defineConfig({
-  base: "/Kakeru/",
+export default defineConfig(({ mode }) => ({
+  base: mode === "production" ? "/Kakeru/" : "/",
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
@@ -14,4 +14,4 @@ export default defineConfig({
   server: {
     port: 5180,
   },
-});
+}));
