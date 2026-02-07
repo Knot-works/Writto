@@ -11,6 +11,12 @@ import ResultPage from "@/routes/write/result";
 import VocabularyPage from "@/routes/vocabulary";
 import HistoryPage from "@/routes/history";
 import SettingsPage from "@/routes/settings";
+import PrivacyPage from "@/routes/privacy";
+import TermsPage from "@/routes/terms";
+import CommercialPage from "@/routes/legal/commercial";
+import ContactPage from "@/routes/contact";
+import FAQPage from "@/routes/faq";
+import AboutPage from "@/routes/about";
 
 export function App() {
   return (
@@ -20,6 +26,12 @@ export function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/onboarding" element={<OnboardingPage />} />
       <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/legal/commercial" element={<CommercialPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/faq" element={<FAQPage />} />
+      <Route path="/about" element={<AboutPage />} />
 
       {/* Authenticated routes */}
       <Route element={<AppLayout />}>

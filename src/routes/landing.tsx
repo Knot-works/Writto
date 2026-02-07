@@ -254,16 +254,87 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-border/50 bg-card/30">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-8">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <PenLine className="h-4 w-4" />
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Brand */}
+            <div className="sm:col-span-2 lg:col-span-1">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <PenLine className="h-4 w-4" />
+                </div>
+                <span className="font-serif font-medium">Kakeru</span>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                AIを活用した英語ライティング学習サービス
+              </p>
             </div>
-            <span className="font-serif font-medium">Kakeru</span>
+
+            {/* Service Links */}
+            <div>
+              <h3 className="font-medium mb-4">サービス</h3>
+              <ul className="space-y-2.5 text-sm">
+                <li>
+                  <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+                    料金プラン
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Kakeruについて
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Support Links */}
+            <div>
+              <h3 className="font-medium mb-4">サポート</h3>
+              <ul className="space-y-2.5 text-sm">
+                <li>
+                  <Link to="/faq" className="text-muted-foreground hover:text-foreground transition-colors">
+                    よくある質問
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
+                    お問い合わせ
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Legal Links */}
+            <div>
+              <h3 className="font-medium mb-4">法的情報</h3>
+              <ul className="space-y-2.5 text-sm">
+                <li>
+                  <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
+                    利用規約
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
+                    プライバシーポリシー
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/legal/commercial" className="text-muted-foreground hover:text-foreground transition-colors">
+                    特定商取引法に基づく表記
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            &copy; 2025 Kakeru. All rights reserved.
-          </p>
+
+          {/* Copyright */}
+          <div className="mt-10 pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-muted-foreground">
+              &copy; 2026 Kakeru. All rights reserved.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Made with passion for language learners
+            </p>
+          </div>
         </div>
       </footer>
     </div>
