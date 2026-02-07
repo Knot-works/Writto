@@ -712,17 +712,15 @@ export default function OnboardingPage() {
                   </Button>
                 </div>
 
-                {/* Skip Option */}
-                {gradingError && (
-                  <Button
-                    variant="ghost"
-                    onClick={handleComplete}
-                    disabled={saving}
-                    className="w-full text-muted-foreground"
-                  >
-                    スキップして始める
-                  </Button>
-                )}
+                {/* Skip Option - always visible */}
+                <Button
+                  variant={gradingError ? "outline" : "ghost"}
+                  onClick={handleComplete}
+                  disabled={saving || grading}
+                  className={`w-full ${gradingError ? "" : "text-muted-foreground"}`}
+                >
+                  {gradingError ? "スキップして始める" : "この練習をスキップ"}
+                </Button>
               </>
             ) : (
               /* Feedback Display */
