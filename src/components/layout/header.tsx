@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/auth-context";
 import { useToken } from "@/contexts/token-context";
-import { callTestSwitchPlan } from "@/lib/functions";
+import { callTestSwitchPlan, callDeleteAccount } from "@/lib/functions";
 import { formatTokens, getUsagePercentage } from "@/lib/rate-limits";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,9 @@ import {
   Infinity,
   FlaskConical,
   Coins,
+  Trash2,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -56,10 +59,12 @@ export function Header() {
 
   const [userModalOpen, setUserModalOpen] = useState(false);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
   const [priceAnimating, setPriceAnimating] = useState(false);
   const [animationDirection, setAnimationDirection] = useState<"up" | "down">("up");
   const [isUpdatingPlan, setIsUpdatingPlan] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const monthlyRef = useRef<HTMLButtonElement>(null);
   const yearlyRef = useRef<HTMLButtonElement>(null);
@@ -71,6 +76,22 @@ export function Header() {
   const handleSignOut = () => {
     setUserModalOpen(false);
     signOut();
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      await callDeleteAccount();
+      toast.success("アカウントを削除しました");
+      setDeleteModalOpen(false);
+      setUserModalOpen(false);
+      signOut();
+    } catch (error) {
+      console.error("Failed to delete account:", error);
+      toast.error("アカウントの削除に失敗しました");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const monthlyPrice = 980;
@@ -341,6 +362,16 @@ export function Header() {
                   <LogOut className="h-5 w-5" />
                   <span>ログアウト</span>
                 </button>
+                <button
+                  onClick={() => {
+                    setUserModalOpen(false);
+                    setDeleteModalOpen(true);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="h-5 w-5" />
+                  <span>アカウント削除</span>
+                </button>
               </div>
 
               {/* Test Mode: Plan Switch */}
@@ -511,6 +542,71 @@ export function Header() {
               <p className="mt-4 text-center text-xs text-muted-foreground">
                 いつでもキャンセル可能 • 安心の返金保証
               </p>
+            </div>
+          </DialogPrimitive.Content>
+        </DialogPortal>
+      </Dialog>
+
+      {/* Delete Account Confirmation Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogPortal>
+          <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <DialogPrimitive.Content className={MODAL_CONTENT_CLASS} aria-describedby={undefined}>
+            {/* Header */}
+            <div className="px-8 pt-8 pb-6 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+                <AlertTriangle className="h-8 w-8 text-destructive" />
+              </div>
+              <DialogPrimitive.Title className="mt-4 font-serif text-2xl">
+                アカウントを削除しますか？
+              </DialogPrimitive.Title>
+              <p className="mt-2 text-sm text-muted-foreground">
+                この操作は取り消せません
+              </p>
+            </div>
+
+            {/* Content */}
+            <div className="px-8 pb-8">
+              <div className="mb-6 rounded-2xl border border-destructive/20 bg-destructive/5 p-4">
+                <p className="text-sm text-muted-foreground">
+                  以下のデータがすべて削除されます：
+                </p>
+                <ul className="mt-2 space-y-1 text-sm">
+                  <li>• ライティング履歴</li>
+                  <li>• 単語帳</li>
+                  <li>• プロフィール情報</li>
+                  <li>• アカウント情報</li>
+                </ul>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1 rounded-xl"
+                  onClick={() => setDeleteModalOpen(false)}
+                  disabled={isDeleting}
+                >
+                  キャンセル
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1 gap-2 rounded-xl"
+                  onClick={handleDeleteAccount}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      削除中...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4" />
+                      削除する
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </DialogPrimitive.Content>
         </DialogPortal>
