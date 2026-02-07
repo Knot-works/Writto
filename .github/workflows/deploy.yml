@@ -17,7 +17,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: github-pages
+    environment: pages
     steps:
       - uses: actions/checkout@v4
 
@@ -31,6 +31,14 @@ jobs:
         run: |
           rm -rf node_modules package-lock.json
           npm install
+
+      - name: Debug - Check environment variables
+        run: |
+          echo "API_KEY length: ${#VITE_FIREBASE_API_KEY}"
+          echo "PROJECT_ID: $VITE_FIREBASE_PROJECT_ID"
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
 
       - name: Build
         run: npm run build
