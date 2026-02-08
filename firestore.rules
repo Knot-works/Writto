@@ -35,6 +35,11 @@ service cloud.firestore {
       match /meta/{docId} {
         allow read, write: if isOwner(userId);
       }
+
+      // Mistakes (間違いノート)
+      match /mistakes/{docId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // Daily prompts: shared, cached, read-only for clients

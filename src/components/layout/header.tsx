@@ -30,6 +30,7 @@ import {
   Trash2,
   Loader2,
   AlertTriangle,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -187,6 +188,9 @@ export function Header() {
             </NavLink>
             <NavLink to="/vocabulary" active={isActive("/vocabulary")}>
               単語帳
+            </NavLink>
+            <NavLink to="/mistakes" active={isActive("/mistakes")}>
+              間違いノート
             </NavLink>
             <NavLink to="/history" active={isActive("/history")}>
               履歴

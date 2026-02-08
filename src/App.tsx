@@ -10,6 +10,7 @@ import WritingPage from "@/routes/write/mode";
 import ResultPage from "@/routes/write/result";
 import VocabularyPage from "@/routes/vocabulary";
 import HistoryPage from "@/routes/history";
+import MistakesPage from "@/routes/mistakes";
 import SettingsPage from "@/routes/settings";
 import PrivacyPage from "@/routes/privacy";
 import TermsPage from "@/routes/terms";
@@ -41,6 +42,7 @@ export function App() {
         <Route path="/write/result/:id" element={<ResultPage />} />
         <Route path="/vocabulary" element={<VocabularyPage />} />
         <Route path="/history" element={<HistoryPage />} />
+        <Route path="/mistakes" element={<MistakesPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
     </Routes>

@@ -21,6 +21,9 @@ import type {
   UserStats,
   WritingMode,
   DailyUsage,
+  MistakeEntry,
+  Improvement,
+  AnalysisPeriod,
 } from "@/types";
 import type { DailyPrompts } from "./functions";
 
@@ -221,5 +224,112 @@ export async function updateUserStats(
 ): Promise<void> {
   await setDoc(doc(db, "users", userId, "meta", "stats"), stats, {
     merge: true,
+  });
+}
+
+// ============ Mistakes (間違いノート) ============
+
+export async function saveMistakes(
+  userId: string,
+  improvements: Improvement[],
+  writingId: string,
+  prompt: string
+): Promise<void> {
+  const mistakesRef = collection(db, "users", userId, "mistakes");
+  const now = Timestamp.now();
+
+  // Save each improvement as a mistake entry
+  for (const imp of improvements) {
+    await addDoc(mistakesRef, {
+      original: imp.original,
+      suggested: imp.suggested,
+      explanation: imp.explanation,
+      type: imp.type,
+      subType: imp.subType || `other_${imp.type}`,
+      sourceWritingId: writingId,
+      sourcePrompt: prompt,
+      createdAt: now,
+      isArchived: false,
+    });
+  }
+}
+
+function getPeriodStartDate(period: AnalysisPeriod): Date | null {
+  if (period === "all") return null;
+
+  const now = new Date();
+  switch (period) {
+    case "7d":
+      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    case "30d":
+      return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    case "3m":
+      return new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+    default:
+      return null;
+  }
+}
+
+export async function getMistakes(
+  userId: string,
+  options: {
+    period?: AnalysisPeriod;
+    type?: string;
+    includeArchived?: boolean;
+    limitCount?: number;
+  } = {}
+): Promise<MistakeEntry[]> {
+  const { period = "all", type, includeArchived = false, limitCount = 200 } = options;
+
+  let q = query(
+    collection(db, "users", userId, "mistakes"),
+    orderBy("createdAt", "desc"),
+    limit(limitCount)
+  );
+
+  const snap = await getDocs(q);
+  let mistakes = snap.docs.map((d) => {
+    const data = d.data();
+    return {
+      id: d.id,
+      ...data,
+      createdAt: data.createdAt?.toDate() || new Date(),
+    } as MistakeEntry;
+  });
+
+  // Filter by period (client-side for simplicity)
+  const startDate = getPeriodStartDate(period);
+  if (startDate) {
+    mistakes = mistakes.filter((m) => m.createdAt >= startDate);
+  }
+
+  // Filter by type
+  if (type) {
+    mistakes = mistakes.filter((m) => m.type === type);
+  }
+
+  // Filter archived
+  if (!includeArchived) {
+    mistakes = mistakes.filter((m) => !m.isArchived);
+  }
+
+  return mistakes;
+}
+
+export async function archiveMistake(
+  userId: string,
+  mistakeId: string
+): Promise<void> {
+  await updateDoc(doc(db, "users", userId, "mistakes", mistakeId), {
+    isArchived: true,
+  });
+}
+
+export async function unarchiveMistake(
+  userId: string,
+  mistakeId: string
+): Promise<void> {
+  await updateDoc(doc(db, "users", userId, "mistakes", mistakeId), {
+    isArchived: false,
   });
 }
