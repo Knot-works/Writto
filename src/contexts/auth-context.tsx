@@ -20,6 +20,7 @@ interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   loading: boolean;
+  profileLoaded: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -31,20 +32,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const loadProfile = async (uid: string) => {
-    const p = await getUserProfile(uid);
-    setProfile(p);
-  };
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
+      setProfileLoaded(false);
+
       if (firebaseUser) {
-        await loadProfile(firebaseUser.uid);
+        try {
+          const p = await getUserProfile(firebaseUser.uid);
+          setProfile(p);
+        } catch (error) {
+          console.error("Failed to load profile:", error);
+          setProfile(null);
+        }
       } else {
         setProfile(null);
       }
+
+      setProfileLoaded(true);
       setLoading(false);
     });
     return unsubscribe;
@@ -62,13 +69,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = async () => {
     if (user) {
-      await loadProfile(user.uid);
+      try {
+        const p = await getUserProfile(user.uid);
+        setProfile(p);
+      } catch (error) {
+        console.error("Failed to refresh profile:", error);
+      }
     }
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, profile, loading, signInWithGoogle, signOut, refreshProfile }}
+      value={{ user, profile, loading, profileLoaded, signInWithGoogle, signOut, refreshProfile }}
     >
       {children}
     </AuthContext.Provider>

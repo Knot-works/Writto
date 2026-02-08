@@ -5,18 +5,18 @@ import { Button } from "@/components/ui/button";
 import { PenLine } from "lucide-react";
 
 export default function LoginPage() {
-  const { user, profile, loading, signInWithGoogle } = useAuth();
+  const { user, profile, loading, profileLoaded, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && profileLoaded) {
       if (profile) {
         navigate("/dashboard");
       } else {
         navigate("/onboarding");
       }
     }
-  }, [user, profile, loading, navigate]);
+  }, [user, profile, loading, profileLoaded, navigate]);
 
   if (loading) {
     return (
