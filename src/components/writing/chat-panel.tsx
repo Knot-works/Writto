@@ -32,6 +32,7 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
     index: number;
     improvement: Improvement;
   } | null>(null);
+  const [selectedTextContext, setSelectedTextContext] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -57,12 +58,20 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
             original: pendingContext.improvement.original,
             suggested: pendingContext.improvement.suggested,
           }
+        : selectedTextContext
+        ? {
+            type: "selection",
+            original: selectedTextContext,
+            suggested: "",
+            improvementIndex: -1,
+          }
         : undefined,
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setPendingContext(null);
+    setSelectedTextContext(null);
     setSending(true);
 
     try {
@@ -71,6 +80,11 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
         content: m.content,
       }));
 
+      // Build the question with selection context if present
+      const questionWithContext = selectedTextContext
+        ? `以下の表現について質問です：「${selectedTextContext}」\n\n${trimmedInput}`
+        : trimmedInput;
+
       const response = await callAskFollowUp({
         writingContext: {
           prompt: writingContext.prompt,
@@ -78,7 +92,7 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
           modelAnswer: writingContext.feedback.modelAnswer,
           improvements: writingContext.feedback.improvements,
         },
-        question: trimmedInput,
+        question: questionWithContext,
         conversationHistory,
         improvementContext: pendingContext
           ? {
@@ -123,15 +137,30 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
     []
   );
 
-  // Expose the askAboutImprovement method via a custom attribute
-  // This allows the parent component to trigger it
+  // Ask about selected text (free-form)
+  const askAboutSelection = useCallback(
+    (selectedText: string) => {
+      setSelectedTextContext(selectedText);
+      setPendingContext(null); // Clear any pending improvement context
+      setInput("");
+      textareaRef.current?.focus();
+    },
+    []
+  );
+
+  // Expose methods via a custom attribute
+  // This allows the parent component to trigger them
   useEffect(() => {
     const panel = document.getElementById("chat-panel");
     if (panel) {
-      (panel as HTMLElement & { askAboutImprovement?: typeof askAboutImprovement }).askAboutImprovement =
-        askAboutImprovement;
+      const extendedPanel = panel as HTMLElement & {
+        askAboutImprovement?: typeof askAboutImprovement;
+        askAboutSelection?: typeof askAboutSelection;
+      };
+      extendedPanel.askAboutImprovement = askAboutImprovement;
+      extendedPanel.askAboutSelection = askAboutSelection;
     }
-  }, [askAboutImprovement]);
+  }, [askAboutImprovement, askAboutSelection]);
 
   return (
     <div id="chat-panel" className="flex h-full flex-col">
@@ -210,7 +239,11 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
                           : "bg-background/50 text-muted-foreground"
                       }`}
                     >
-                      {message.context.original} → {message.context.suggested}
+                      {message.context.type === "selection" ? (
+                        <span>📝 {message.context.original}</span>
+                      ) : (
+                        <span>{message.context.original} → {message.context.suggested}</span>
+                      )}
                     </div>
                   )}
                   <p className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -237,7 +270,7 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
         )}
       </div>
 
-      {/* Context indicator */}
+      {/* Context indicator - Improvement */}
       {pendingContext && (
         <div className="border-t border-border/40 bg-primary/5 px-4 py-2">
           <div className="flex items-center justify-between gap-2">
@@ -251,6 +284,30 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
               onClick={() => {
                 setPendingContext(null);
                 setInput("");
+              }}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Context indicator - Selected text */}
+      {selectedTextContext && !pendingContext && (
+        <div className="border-t border-border/40 bg-sky-500/5 px-4 py-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-medium text-sky-600 mb-1">選択中のテキスト</p>
+              <p className="text-xs text-foreground/80 line-clamp-2 break-all">
+                {selectedTextContext}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 shrink-0"
+              onClick={() => {
+                setSelectedTextContext(null);
               }}
             >
               <X className="h-3 w-3" />
