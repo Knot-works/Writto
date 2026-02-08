@@ -112,6 +112,42 @@ export interface UserProfile {
   tokenUsage?: TokenUsage;
 }
 
+// Structure analysis types
+export type StructureRole =
+  | "opinion"      // 意見・主張
+  | "reason"       // 理由
+  | "example"      // 具体例・詳細説明
+  | "counter"      // 反論・対比
+  | "conclusion";  // 結論
+
+export const STRUCTURE_ROLE_LABELS: Record<StructureRole, string> = {
+  opinion: "意見",
+  reason: "理由",
+  example: "例示",
+  counter: "反論",
+  conclusion: "結論",
+};
+
+export const STRUCTURE_ROLE_COLORS: Record<StructureRole, { bg: string; border: string; text: string }> = {
+  opinion: { bg: "bg-emerald-500/10", border: "border-emerald-500/30", text: "text-emerald-600" },
+  reason: { bg: "bg-sky-500/10", border: "border-sky-500/30", text: "text-sky-600" },
+  example: { bg: "bg-amber-500/10", border: "border-amber-500/30", text: "text-amber-600" },
+  counter: { bg: "bg-violet-500/10", border: "border-violet-500/30", text: "text-violet-600" },
+  conclusion: { bg: "bg-rose-500/10", border: "border-rose-500/30", text: "text-rose-600" },
+};
+
+export interface StructureBlock {
+  role: StructureRole;
+  text: string;           // The actual text from user's answer
+  sentenceIndices: number[]; // Which sentences belong to this block
+}
+
+export interface StructureAnalysis {
+  blocks: StructureBlock[];
+  missingElements: StructureRole[];  // Roles that are missing
+  feedback?: string;                  // Overall structure feedback
+}
+
 export interface WritingFeedback {
   overallRank: Rank;
   grammarRank: Rank;
@@ -121,6 +157,7 @@ export interface WritingFeedback {
   summary?: string;
   improvements: Improvement[];
   vocabularyItems?: VocabularyItem[];
+  structureAnalysis?: StructureAnalysis;  // New: structure analysis
   modelAnswer: string;
 }
 
@@ -129,7 +166,91 @@ export interface Improvement {
   suggested: string;
   explanation: string;
   type: "grammar" | "vocabulary" | "structure" | "content";
+  subType?: string;
 }
+
+// SubType categories for detailed error analysis
+export const GRAMMAR_SUBTYPES = [
+  "articles",      // 冠詞 (a/the)
+  "tense",         // 時制
+  "agreement",     // 主語と動詞の一致
+  "prepositions",  // 前置詞
+  "word_order",    // 語順
+  "plurals",       // 複数形
+  "modals",        // 助動詞
+  "conditionals",  // 条件文
+  "other_grammar", // その他
+] as const;
+
+export const VOCABULARY_SUBTYPES = [
+  "word_choice",   // 語彙選択
+  "collocation",   // コロケーション
+  "formality",     // フォーマル度
+  "spelling",      // スペル
+  "other_vocab",   // その他
+] as const;
+
+export const STRUCTURE_SUBTYPES = [
+  "missing_intro",      // 導入不足
+  "missing_conclusion", // 結論不足
+  "transitions",        // 接続詞
+  "paragraph",          // 段落構成
+  "other_structure",    // その他
+] as const;
+
+export const CONTENT_SUBTYPES = [
+  "off_topic",           // 的外れ
+  "insufficient_detail", // 詳細不足
+  "unclear",             // 不明瞭
+  "other_content",       // その他
+] as const;
+
+export const SUBTYPE_LABELS: Record<string, string> = {
+  // Grammar
+  articles: "冠詞 (a/the)",
+  tense: "時制",
+  agreement: "主語と動詞の一致",
+  prepositions: "前置詞",
+  word_order: "語順",
+  plurals: "複数形",
+  modals: "助動詞",
+  conditionals: "条件文",
+  other_grammar: "その他の文法",
+  // Vocabulary
+  word_choice: "語彙選択",
+  collocation: "コロケーション",
+  formality: "フォーマル度",
+  spelling: "スペル",
+  other_vocab: "その他の語彙",
+  // Structure
+  missing_intro: "導入不足",
+  missing_conclusion: "結論不足",
+  transitions: "接続詞・つなぎ",
+  paragraph: "段落構成",
+  other_structure: "その他の構成",
+  // Content
+  off_topic: "的外れ",
+  insufficient_detail: "詳細不足",
+  unclear: "不明瞭",
+  other_content: "その他の内容",
+};
+
+// Mistake entry for the mistake journal
+export interface MistakeEntry {
+  id: string;
+  original: string;
+  suggested: string;
+  explanation: string;
+  type: "grammar" | "vocabulary" | "structure" | "content";
+  subType: string;
+  sourceWritingId: string;
+  sourcePrompt: string;
+  createdAt: Date;
+  isArchived: boolean;
+}
+
+// Period filter type
+export type AnalysisPeriod = "7d" | "30d" | "3m" | "all";
 
 export interface VocabularyItem {
   term: string;
@@ -299,7 +420,7 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   context?: {
-    type: "improvement";
+    type: "improvement" | "selection";
     improvementIndex: number;
     original: string;
     suggested: string;
