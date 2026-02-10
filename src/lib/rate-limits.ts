@@ -1,9 +1,9 @@
 import type { Plan } from "@/types";
 
-// Token-based limits (monthly)
+// Token-based limits (cumulative for free, monthly for pro)
 export const TOKEN_LIMITS: Record<Plan, number> = {
-  free: 10_000,      // ~2-3 sessions (体験版)
-  pro: 2_000_000,    // ~800 gradings
+  free: 20_000,      // ~6 sessions (累計・お試し用)
+  pro: 2_000_000,    // ~800 gradings/month
 };
 
 // Estimated tokens per operation
