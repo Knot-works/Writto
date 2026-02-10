@@ -222,9 +222,9 @@ export async function callTestSwitchPlan(
 export interface TokenUsageResponse {
   tokensUsed: number;
   tokenLimit: number;
-  periodStart: string;
-  periodEnd: string;
-  daysUntilReset: number;
+  periodStart: string | null;  // null for free plan (no reset)
+  periodEnd: string | null;    // null for free plan (no reset)
+  daysUntilReset: number;      // -1 for free plan (no reset)
   plan: string;
 }
 
@@ -236,6 +236,35 @@ export async function callGetTokenUsage(): Promise<TokenUsageResponse> {
 
   const result = await fn({});
   return result.data;
+}
+
+// ============ OCR Handwriting ============
+
+export interface OcrResponse {
+  text: string;
+  tokensUsed: number;
+}
+
+export async function callOcrHandwriting(
+  imageBase64: string,
+  mimeType: string
+): Promise<OcrResponse> {
+  const fn = httpsCallable<
+    { imageBase64: string; mimeType: string },
+    OcrResponse
+  >(functions, "ocrHandwriting");
+
+  const result = await fn({ imageBase64, mimeType });
+  return result.data;
+}
+
+export function isProOnlyError(error: unknown): boolean {
+  return (
+    error != null &&
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code: string }).code === "functions/permission-denied"
+  );
 }
 
 // ============ Delete Account ============
