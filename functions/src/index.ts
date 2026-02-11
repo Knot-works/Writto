@@ -164,18 +164,6 @@ const ESTIMATED_TOKENS: Record<RateLimitedOperation, number> = {
   lookupWord: 600,       // ~200 input + 400 output
 };
 
-// Global limits (system protection)
-const GLOBAL_LIMITS: Record<RateLimitedOperation, number> = {
-  generatePrompt: 2000,
-  gradeWriting: 500,
-  lookupWord: 5000,
-};
-
-const OPERATION_LABELS: Record<RateLimitedOperation, string> = {
-  generatePrompt: "お題生成",
-  gradeWriting: "添削",
-  lookupWord: "辞書検索",
-};
 
 // Input length limits (security)
 const INPUT_LIMITS = {
@@ -216,23 +204,9 @@ async function checkTokenBudget(
   operation: RateLimitedOperation
 ): Promise<{ plan: string; tokensUsed: number; tokenLimit: number; periodEnd: Date }> {
   const profileRef = db.doc(`users/${uid}`);
-  const globalRef = db.doc(`globalUsage/${getTodayJST()}`);
   const { periodStart, periodEnd } = getMonthlyPeriod();
 
-  const [profileSnap, globalSnap] = await Promise.all([
-    profileRef.get(),
-    globalRef.get(),
-  ]);
-
-  // Global limit check
-  const globalData = globalSnap.exists ? globalSnap.data()! : {};
-  const globalCurrent = (globalData[operation] as number) || 0;
-  if (globalCurrent >= GLOBAL_LIMITS[operation]) {
-    throw new HttpsError(
-      "resource-exhausted",
-      "現在アクセスが集中しています。しばらくしてからお試しください。"
-    );
-  }
+  const profileSnap = await profileRef.get();
 
   // Get user's plan and token usage
   const profileData = profileSnap.exists ? profileSnap.data()! : {};
@@ -280,11 +254,9 @@ async function checkTokenBudget(
 // Record actual token usage after operation
 async function recordTokenUsage(
   uid: string,
-  tokensUsed: number,
-  operation: RateLimitedOperation
+  tokensUsed: number
 ): Promise<void> {
   const profileRef = db.doc(`users/${uid}`);
-  const globalRef = db.doc(`globalUsage/${getTodayJST()}`);
   const { periodStart, periodEnd } = getMonthlyPeriod();
 
   await db.runTransaction(async (tx) => {
@@ -325,13 +297,6 @@ async function recordTokenUsage(
     tx.set(
       profileRef,
       { tokenUsage: usageUpdate },
-      { merge: true }
-    );
-
-    // Increment global operation count
-    tx.set(
-      globalRef,
-      { [operation]: FieldValue.increment(1) },
       { merge: true }
     );
   });
@@ -881,7 +846,7 @@ export const generatePrompt = onCall(
 
       // Record actual token usage
       const tokensUsed = completion.usage?.total_tokens || ESTIMATED_TOKENS.generatePrompt;
-      await recordTokenUsage(request.auth.uid, tokensUsed, "generatePrompt");
+      await recordTokenUsage(request.auth.uid, tokensUsed);
 
       const result = parseJsonResponse(content) as {
         prompt: string;
@@ -1032,7 +997,7 @@ ${langInstruction}
 
       // Record actual token usage
       const tokensUsed = completion.usage?.total_tokens || ESTIMATED_TOKENS.lookupWord;
-      await recordTokenUsage(request.auth.uid, tokensUsed, "lookupWord");
+      await recordTokenUsage(request.auth.uid, tokensUsed);
 
       const result = parseJsonResponse(content);
 
@@ -1113,7 +1078,7 @@ export const gradeWriting = onCall(
 
       // Record actual token usage
       const tokensUsed = completion.usage?.total_tokens || ESTIMATED_TOKENS.gradeWriting;
-      await recordTokenUsage(request.auth.uid, tokensUsed, "gradeWriting");
+      await recordTokenUsage(request.auth.uid, tokensUsed);
 
       const result = parseJsonResponse(content) as {
         overallRank: string;
@@ -1256,7 +1221,7 @@ I think learning English is important because it helps us communicate with peopl
 
       // Record token usage
       const tokensUsed = completion.usage?.total_tokens || OCR_ESTIMATED_TOKENS;
-      await recordTokenUsage(uid, tokensUsed, "gradeWriting");
+      await recordTokenUsage(uid, tokensUsed);
 
       // Clean up the response - remove any markdown or extra formatting
       const cleanedText = content
@@ -1583,7 +1548,7 @@ ${contextSection}
 
       // Record token usage
       const tokensUsed = completion.usage?.total_tokens || FOLLOWUP_ESTIMATED_TOKENS;
-      await recordTokenUsage(request.auth.uid, tokensUsed, "lookupWord");
+      await recordTokenUsage(request.auth.uid, tokensUsed);
 
       return {
         answer: content,
