@@ -110,7 +110,7 @@ export default function LandingPage() {
           </h1>
 
           {/* Description with Flip Words */}
-          <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+          <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground text-center">
             <span className="inline-flex flex-wrap items-center justify-center gap-1">
               <FlipWords
                 words={FLIP_WORDS}
@@ -119,8 +119,8 @@ export default function LandingPage() {
               />
               <span>英語ライティング力を伸ばす。</span>
             </span>
-            <br className="md:hidden" />
-            <span className="md:inline">
+            <br />
+            <span>
               ビジネス、旅行、試験対策など、あなたの目標に合わせてAIがサポートします。
             </span>
           </p>
