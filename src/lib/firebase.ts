@@ -1,7 +1,12 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
-import { getAnalytics, logEvent, isSupported, type Analytics } from "firebase/analytics";
+import {
+  initializeFirestore,
+  getFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
+import { getAnalytics, logEvent, isSupported, type Analytics as FirebaseAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -16,22 +21,27 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
 
-// Enable offline persistence for better UX and reduced read costs
-enableIndexedDbPersistence(db).catch((err) => {
-  if (err.code === "failed-precondition") {
-    // Multiple tabs open, persistence can only be enabled in one tab at a time
-    console.warn("Firestore persistence failed: multiple tabs open");
-  } else if (err.code === "unimplemented") {
-    // Browser doesn't support persistence
-    console.warn("Firestore persistence not supported in this browser");
+// Initialize Firestore with persistent cache for offline support and reduced read costs
+// Uses multi-tab synchronization for better UX across browser tabs
+function initFirestore() {
+  try {
+    return initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+    });
+  } catch {
+    // Firestore already initialized (e.g., during HMR)
+    return getFirestore(app);
   }
-});
+}
+
+export const db = initFirestore();
 
 // ============ Analytics ============
 
-let analytics: Analytics | null = null;
+let analytics: FirebaseAnalytics | null = null;
 
 // Initialize analytics only in browser environment
 if (typeof window !== "undefined") {

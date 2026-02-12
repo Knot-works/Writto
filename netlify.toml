@@ -28,8 +28,50 @@
     # - worker-src: PDF.js web worker
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://*.firebaseapp.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.cloudfunctions.net wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; img-src 'self' data: blob: https:; frame-src https://*.firebaseapp.com https://accounts.google.com https://auth.writto.knotwith.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self';"
 
-# Cache immutable assets
+# ============ Cache Headers ============
+
+# Vite hashed assets (immutable - safe to cache forever)
 [[headers]]
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# Fonts (immutable - rarely change)
+[[headers]]
+  for = "/*.woff2"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.woff"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Favicon (long cache, but NOT immutable - may be updated)
+[[headers]]
+  for = "/favicon.ico"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+# SVG files in root (moderate cache - may be updated)
+[[headers]]
+  for = "/*.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+# HTML (no cache - always fetch latest)
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Static files like robots.txt, sitemap.xml (moderate cache)
+[[headers]]
+  for = "/robots.txt"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
