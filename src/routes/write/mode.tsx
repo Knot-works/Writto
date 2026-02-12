@@ -66,6 +66,7 @@ export default function WritingPage() {
   // Ref-based guards to prevent race conditions on rapid clicks
   const isGeneratingRef = useRef(false);
   const isSubmittingRef = useRef(false);
+  const rateLimitHitRef = useRef(false);
 
   // Calculate remaining gradings based on token budget
   const tokensRemaining = tokenUsage ? tokenUsage.tokenLimit - tokenUsage.tokensUsed : 0;
@@ -77,7 +78,7 @@ export default function WritingPage() {
     : 0;
 
   const generatePrompt = useCallback(async (topicOverride?: string) => {
-    if (!profile || isGeneratingRef.current) return;
+    if (!profile || isGeneratingRef.current || rateLimitHitRef.current) return;
     isGeneratingRef.current = true;
     setGenerating(true);
     setShowExample(false);
@@ -97,6 +98,7 @@ export default function WritingPage() {
       console.error("Failed to generate prompt:", error);
       Analytics.errorOccurred({ type: "prompt_generation", message: String(error), location: "generatePrompt" });
       if (isRateLimitError(error)) {
+        rateLimitHitRef.current = true;
         toast.custom(
           () => (
             <div className="w-[360px] rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-4 shadow-lg">
@@ -134,7 +136,7 @@ export default function WritingPage() {
   }, [profile, mode, generatePrompt, dailyPrompt]);
 
   const handleCustomSubmit = async () => {
-    if (!customInput.trim() || !profile || isGeneratingRef.current) return;
+    if (!customInput.trim() || !profile || isGeneratingRef.current || rateLimitHitRef.current) return;
     isGeneratingRef.current = true;
     setGenerating(true);
     setShowExample(false);
@@ -148,6 +150,7 @@ export default function WritingPage() {
     } catch (error) {
       console.error("Failed to generate prompt:", error);
       if (isRateLimitError(error)) {
+        rateLimitHitRef.current = true;
         toast.custom(
           () => (
             <div className="w-[360px] rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-4 shadow-lg">
@@ -179,7 +182,7 @@ export default function WritingPage() {
   };
 
   const handleSubmit = async () => {
-    if (!user || !profile || !userAnswer.trim() || !prompt || isSubmittingRef.current) return;
+    if (!user || !profile || !userAnswer.trim() || !prompt || isSubmittingRef.current || rateLimitHitRef.current) return;
     isSubmittingRef.current = true;
     setSubmitting(true);
 
@@ -217,6 +220,7 @@ export default function WritingPage() {
       console.error("Failed to grade writing:", error);
       Analytics.errorOccurred({ type: "grading", message: String(error), location: "handleSubmit" });
       if (isRateLimitError(error)) {
+        rateLimitHitRef.current = true;
         refreshTokenUsage();
         toast.custom(
           () => (
