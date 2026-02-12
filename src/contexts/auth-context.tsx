@@ -12,7 +12,7 @@ import {
   GoogleAuthProvider,
   type User,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, Analytics } from "@/lib/firebase";
 import { getUserProfile } from "@/lib/firestore";
 import type { UserProfile } from "@/types";
 
@@ -59,7 +59,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    const result = await signInWithPopup(auth, provider);
+    // Track new signups
+    // @ts-expect-error - _tokenResponse contains isNewUser but not in type definition
+    if (result._tokenResponse?.isNewUser) {
+      Analytics.signupCompleted("google");
+    }
   };
 
   const signOut = async () => {

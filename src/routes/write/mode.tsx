@@ -5,6 +5,7 @@ import { useToken } from "@/contexts/token-context";
 import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 import { saveWriting, saveMistakes } from "@/lib/firestore";
 import { callGeneratePrompt, callGradeWriting, isRateLimitError, getRateLimitMessage } from "@/lib/functions";
+import { Analytics } from "@/lib/firebase";
 import { getEstimatedRemaining } from "@/lib/rate-limits";
 import { toast } from "sonner";
 import { DictionaryPanel } from "@/components/writing/dictionary-panel";
@@ -91,8 +92,10 @@ export default function WritingPage() {
       setRecommendedWords(result.recommendedWords);
       setExampleJa(result.exampleJa || "");
       setKeywords(result.keywords || []);
+      Analytics.promptGenerated(mode);
     } catch (error) {
       console.error("Failed to generate prompt:", error);
+      Analytics.errorOccurred({ type: "prompt_generation", message: String(error), location: "generatePrompt" });
       if (isRateLimitError(error)) {
         toast.custom(
           () => (
@@ -235,6 +238,10 @@ export default function WritingPage() {
         wordCount,
       });
 
+      // Track analytics
+      Analytics.writingSubmitted({ mode, wordCount, timeTakenSec: 0 });
+      Analytics.writingGraded({ mode, rank: feedback.overallRank });
+
       // Save mistakes for the mistake journal (don't await - fire and forget)
       if (feedback.improvements && feedback.improvements.length > 0) {
         saveMistakes(user.uid, feedback.improvements, writingId, prompt).catch(
@@ -245,6 +252,7 @@ export default function WritingPage() {
       navigate(`/write/result/${writingId}`);
     } catch (error) {
       console.error("Failed to grade writing:", error);
+      Analytics.errorOccurred({ type: "grading", message: String(error), location: "handleSubmit" });
       if (isRateLimitError(error)) {
         // Refetch token usage to get updated limits
         refreshTokenUsage();
