@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, HelpCircle, PenLine, ChevronDown, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -88,11 +88,64 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     category: "アカウント",
     question: "データはどのように保護されていますか？",
-    answer: "データはGoogle Cloud（Firebase）上に安全に保存されています。通信はすべてSSL/TLSで暗号化され、決済情報はStripeが安全に管理します。また、OpenAI APIの規約により、API経由で送信されたデータはOpenAIのモデル学習に使用されません（参照: openai.com/policies/row-terms）。",
+    answer: "データはGoogle Cloud（Firebase）上に安全に保存されています。通信はすべてSSL/TLSで暗号化され、決済情報はStripeが安全に管理します。また、OpenAI APIの規約により、API経由で送信されたデータはOpenAIのモデル学習に使用されません（[詳細](https://platform.openai.com/docs/models#how-we-use-your-data)）。",
   },
 ];
 
 const CATEGORIES = [...new Set(FAQ_ITEMS.map((item) => item.category))];
+
+// Render answer text with clickable links
+function renderAnswerWithLinks(text: string) {
+  // Match URLs in the format [label](url) or plain https:// URLs
+  const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = linkRegex.exec(text)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+
+    if (match[1] && match[2]) {
+      // [label](url) format
+      parts.push(
+        <a
+          key={match.index}
+          href={match[2]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:underline"
+        >
+          {match[1]}
+        </a>
+      );
+    } else if (match[3]) {
+      // Plain URL format
+      parts.push(
+        <a
+          key={match.index}
+          href={match[3]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:underline"
+        >
+          {match[3]}
+        </a>
+      );
+    }
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : text;
+}
 
 function FAQAccordion({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boolean; onToggle: () => void }) {
   return (
@@ -118,7 +171,7 @@ function FAQAccordion({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boole
             className="overflow-hidden"
           >
             <p className="pb-5 text-muted-foreground leading-relaxed">
-              {item.answer}
+              {renderAnswerWithLinks(item.answer)}
             </p>
           </motion.div>
         )}
