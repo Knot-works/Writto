@@ -11,7 +11,9 @@ import {
   getDocs,
   addDoc,
   deleteDoc,
+  deleteField,
   Timestamp,
+  type FieldValue,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import type {
@@ -54,7 +56,12 @@ export async function updateUserProfile(
   userId: string,
   updates: Partial<UserProfile>
 ): Promise<void> {
-  await updateDoc(doc(db, "users", userId), updates);
+  // Convert undefined values to deleteField() to properly remove them from Firestore
+  const processedUpdates: Record<string, unknown | FieldValue> = {};
+  for (const [key, value] of Object.entries(updates)) {
+    processedUpdates[key] = value === undefined ? deleteField() : value;
+  }
+  await updateDoc(doc(db, "users", userId), processedUpdates);
 }
 
 // ============ Writings ============
