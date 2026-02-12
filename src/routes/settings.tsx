@@ -343,8 +343,8 @@ export default function SettingsPage() {
                   {tokenUsage.plan === "free"
                     ? "無料枠（リセットなし）"
                     : tokenUsage.periodEnd
-                      ? `次回リセット: ${new Date(tokenUsage.periodEnd).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}（${tokenUsage.daysUntilReset}日後）`
-                      : `${tokenUsage.daysUntilReset}日後にリセット`
+                      ? `次回リセット: ${new Date(tokenUsage.periodEnd).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}`
+                      : null
                   }
                 </p>
               </div>

@@ -1605,7 +1605,7 @@ export const getTokenUsage = onCall(
 
     // Determine tokens used based on plan
     // Free plan: lifetime usage (no reset)
-    // Pro plan: based on subscription billing period from Stripe
+    // Pro plan: based on subscription billing period
     let tokensUsed = 0;
     let periodStart: Date | null = null;
     let periodEnd: Date | null = null;
@@ -1615,35 +1615,35 @@ export const getTokenUsage = onCall(
       // Free plan: accumulate forever
       tokensUsed = tokenUsage.tokensUsed || 0;
     } else {
-      // Pro plan: fetch billing period directly from Stripe for accuracy
-      const subscriptionId = profileData.subscriptionId;
+      // Pro plan: first check Firestore, only call Stripe if period expired or missing
+      const storedPeriod = getStoredBillingPeriod(tokenUsage);
+      const now = Date.now();
 
-      if (subscriptionId) {
-        try {
-          const stripe = new Stripe(stripeSecretKey.value(), {
-            apiVersion: "2026-01-28.clover",
-          });
+      // Check if stored period is still valid (not expired)
+      if (storedPeriod && now < storedPeriod.periodEnd.getTime()) {
+        // Within current billing period - use Firestore data (no Stripe API call)
+        periodStart = storedPeriod.periodStart;
+        periodEnd = storedPeriod.periodEnd;
+        tokensUsed = tokenUsage.tokensUsed || 0;
+        daysUntilReset = Math.max(0, Math.ceil((periodEnd.getTime() - now) / (24 * 3600_000)));
+      } else {
+        // Period expired or missing - fetch from Stripe to get new period
+        const subscriptionId = profileData.subscriptionId;
 
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-          const subscriptionItem = subscription.items.data[0];
+        if (subscriptionId) {
+          try {
+            const stripe = new Stripe(stripeSecretKey.value(), {
+              apiVersion: "2026-01-28.clover",
+            });
 
-          if (subscriptionItem?.current_period_start && subscriptionItem?.current_period_end) {
-            periodStart = new Date(subscriptionItem.current_period_start * 1000);
-            periodEnd = new Date(subscriptionItem.current_period_end * 1000);
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+            const subscriptionItem = subscription.items.data[0];
 
-            const now = Date.now();
+            if (subscriptionItem?.current_period_start && subscriptionItem?.current_period_end) {
+              periodStart = new Date(subscriptionItem.current_period_start * 1000);
+              periodEnd = new Date(subscriptionItem.current_period_end * 1000);
 
-            // Check if stored period matches Stripe period
-            const storedPeriod = getStoredBillingPeriod(tokenUsage);
-            const periodsMatch = storedPeriod &&
-              Math.abs(storedPeriod.periodStart.getTime() - periodStart.getTime()) < 60000 && // Within 1 minute
-              Math.abs(storedPeriod.periodEnd.getTime() - periodEnd.getTime()) < 60000;
-
-            if (periodsMatch) {
-              // Same period, use stored token count
-              tokensUsed = tokenUsage.tokensUsed || 0;
-            } else {
-              // Period changed (renewal happened), reset tokens and update Firestore
+              // Reset tokens for new period and update Firestore
               tokensUsed = 0;
               await profileRef.update({
                 "tokenUsage.tokensUsed": 0,
@@ -1651,29 +1651,19 @@ export const getTokenUsage = onCall(
                 "tokenUsage.periodEnd": periodEnd,
                 "tokenUsage.lastUpdated": FieldValue.serverTimestamp(),
               });
-            }
 
-            daysUntilReset = Math.max(0, Math.ceil((periodEnd.getTime() - now) / (24 * 3600_000)));
+              daysUntilReset = Math.max(0, Math.ceil((periodEnd.getTime() - now) / (24 * 3600_000)));
+            }
+          } catch (error) {
+            // Stripe fetch failed - use stored data as fallback
+            console.warn("Failed to fetch subscription from Stripe:", error);
+            if (storedPeriod) {
+              periodStart = storedPeriod.periodStart;
+              periodEnd = storedPeriod.periodEnd;
+              tokensUsed = tokenUsage.tokensUsed || 0;
+              daysUntilReset = Math.max(0, Math.ceil((periodEnd.getTime() - now) / (24 * 3600_000)));
+            }
           }
-        } catch (error) {
-          // Fallback to stored data if Stripe fetch fails
-          console.warn("Failed to fetch subscription from Stripe, using stored data:", error);
-          const storedPeriod = getStoredBillingPeriod(tokenUsage);
-          if (storedPeriod) {
-            periodStart = storedPeriod.periodStart;
-            periodEnd = storedPeriod.periodEnd;
-            tokensUsed = tokenUsage.tokensUsed || 0;
-            daysUntilReset = Math.max(0, Math.ceil((periodEnd.getTime() - Date.now()) / (24 * 3600_000)));
-          }
-        }
-      } else {
-        // No subscription ID, use stored data
-        const storedPeriod = getStoredBillingPeriod(tokenUsage);
-        if (storedPeriod) {
-          periodStart = storedPeriod.periodStart;
-          periodEnd = storedPeriod.periodEnd;
-          tokensUsed = tokenUsage.tokensUsed || 0;
-          daysUntilReset = Math.max(0, Math.ceil((periodEnd.getTime() - Date.now()) / (24 * 3600_000)));
         }
       }
     }
