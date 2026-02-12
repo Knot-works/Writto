@@ -82,6 +82,33 @@ export default function AboutPage() {
           </Card>
         </section>
 
+        {/* Why Writto */}
+        <section className="mb-16">
+          <h2 className="font-serif text-2xl mb-6 flex items-center gap-3">
+            <span className="h-8 w-1 rounded-full bg-primary" />
+            Writtoが目指すこと
+          </h2>
+          <Card>
+            <CardContent className="p-8 space-y-6">
+              <div>
+                <h3 className="font-medium text-lg mb-2">学習のハードルを下げる</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  語学学習において、モチベーションの維持は最も重要な課題の一つです。
+                  興味のないトピックで学習を続けることは難しく、多くの人が途中で挫折してしまいます。
+                </p>
+              </div>
+              <div>
+                <h3 className="font-medium text-lg mb-2">AIによるパーソナライズ</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Writtoは、AIを活用して一人ひとりの趣味・興味・状況に合わせたお題を生成します。
+                  自分に関係のあるトピックだからこそ「書きたい」と思え、学習が続けられる。
+                  そんな体験を提供したいと考えています。
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
         {/* Values */}
         <section className="mb-16">
           <h2 className="font-serif text-2xl mb-6 flex items-center gap-3">
@@ -103,6 +130,28 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* Name Origin */}
+        <section className="mb-16">
+          <h2 className="font-serif text-2xl mb-6 flex items-center gap-3">
+            <span className="h-8 w-1 rounded-full bg-primary" />
+            名前の由来
+          </h2>
+          <Card>
+            <CardContent className="p-8">
+              <div className="text-center mb-6">
+                <p className="text-2xl font-serif mb-2">Writto（リット）</p>
+                <p className="text-muted-foreground">
+                  <span className="text-primary font-medium">Write</span> +{" "}
+                  <span className="text-primary font-medium">Jot down</span>（さっと書き留める）の造語
+                </p>
+              </div>
+              <p className="text-muted-foreground">
+                隙間時間に「ちょっと書こう」と思えるような、気軽さを大切にしています。
+              </p>
+            </CardContent>
+          </Card>
+        </section>
+
         {/* Service Info */}
         <section className="mb-16">
           <h2 className="font-serif text-2xl mb-6 flex items-center gap-3">
@@ -116,7 +165,7 @@ export default function AboutPage() {
                   <dt className="font-medium text-muted-foreground sm:w-32 shrink-0 mb-1 sm:mb-0">
                     サービス名
                   </dt>
-                  <dd>Writto（カケル）</dd>
+                  <dd>Writto（リット）</dd>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:gap-8">
                   <dt className="font-medium text-muted-foreground sm:w-32 shrink-0 mb-1 sm:mb-0">
@@ -128,7 +177,16 @@ export default function AboutPage() {
                   <dt className="font-medium text-muted-foreground sm:w-32 shrink-0 mb-1 sm:mb-0">
                     運営
                   </dt>
-                  <dd>個人運営</dd>
+                  <dd>
+                    <a
+                      href="https://knotwith.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      knot
+                    </a>
+                  </dd>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:gap-8">
                   <dt className="font-medium text-muted-foreground sm:w-32 shrink-0 mb-1 sm:mb-0">
