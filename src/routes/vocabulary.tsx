@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
+import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 import { getVocabulary, deleteVocab, saveVocab } from "@/lib/firestore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ const FREE_PLAN_VOCAB_LIMIT = 50;
 
 export default function VocabularyPage() {
   const { user, profile } = useAuth();
+  const { open: openUpgradeModal } = useUpgradeModal();
   const isFreePlan = profile?.plan !== "pro";
   const [entries, setEntries] = useState<VocabEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -205,16 +206,15 @@ export default function VocabularyPage() {
                 )}
               </p>
             </div>
-            <Link to="/pricing">
-              <Button
-                size="sm"
-                variant="outline"
-                className={`gap-1.5 ${isAtLimit ? "border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30" : "border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900/30"}`}
-              >
-                <Crown className="h-3.5 w-3.5" />
-                Proで無制限に
-              </Button>
-            </Link>
+            <Button
+              size="sm"
+              variant="outline"
+              className={`gap-1.5 ${isAtLimit ? "border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30" : "border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900/30"}`}
+              onClick={openUpgradeModal}
+            >
+              <Crown className="h-3.5 w-3.5" />
+              Proで無制限に
+            </Button>
           </CardContent>
         </Card>
       )}

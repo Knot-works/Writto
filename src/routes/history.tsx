@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
+import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 import { getWritings } from "@/lib/firestore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ const FREE_PLAN_HISTORY_DAYS = 7;
 
 export default function HistoryPage() {
   const { user, profile } = useAuth();
+  const { open: openUpgradeModal } = useUpgradeModal();
   const [writings, setWritings] = useState<Writing[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterMode, setFilterMode] = useState<"all" | WritingMode>("all");
@@ -117,12 +119,15 @@ export default function HistoryPage() {
                 )}
               </p>
             </div>
-            <Link to="/pricing">
-              <Button size="sm" variant="outline" className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900/30">
-                <Crown className="h-3.5 w-3.5" />
-                Proで無制限に
-              </Button>
-            </Link>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900/30"
+              onClick={openUpgradeModal}
+            >
+              <Crown className="h-3.5 w-3.5" />
+              Proで無制限に
+            </Button>
           </CardContent>
         </Card>
       )}
