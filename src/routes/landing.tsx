@@ -10,7 +10,6 @@ import {
   TrendingUp,
   Layers,
   Zap,
-  Coffee,
 } from "lucide-react";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
 import { FlipWords } from "@/components/ui/flip-words";
@@ -101,7 +100,7 @@ export default function LandingPage() {
           </div>
 
           {/* Text Generate Effect for main headline */}
-          <h1 className="font-serif text-[clamp(1.75rem,5vw,3.75rem)] leading-tight whitespace-nowrap">
+          <h1 className="font-serif text-2xl sm:text-4xl md:text-5xl leading-tight">
             <TextGenerateEffect
               words="英語で「書ける」自分になる。"
               className="font-serif"
@@ -271,15 +270,6 @@ export default function LandingPage() {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 AIを活用した英語ライティング学習サービス
               </p>
-              <a
-                href="https://www.buymeacoffee.com/YOUR_USERNAME"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-amber-500/40 hover:bg-amber-500/10 hover:text-amber-600"
-              >
-                <Coffee className="h-3.5 w-3.5 text-amber-500" />
-                <span>開発者を応援する</span>
-              </a>
             </div>
 
             {/* Service Links */}
