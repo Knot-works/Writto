@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RankBadge } from "@/components/writing/rank-badge";
 import { ScoreCard } from "@/components/score-card";
+import { FeedbackModal } from "@/components/feedback-modal";
 import {
   PenLine,
   RefreshCw,
@@ -17,6 +18,7 @@ import {
   Loader2,
   UserCircle,
   Eye,
+  MessageSquare,
 } from "lucide-react";
 import { type Writing, type UserStats, type WritingMode, MODE_LABELS } from "@/types";
 
@@ -34,6 +36,7 @@ export default function DashboardPage() {
   const [promptLoading, setPromptLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<keyof DailyPrompts>("goal");
   const [allWritings, setAllWritings] = useState<Writing[]>([]);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -122,16 +125,19 @@ export default function DashboardPage() {
       <ScoreCard score={skillScore} />
 
       {/* Today's Prompt Card */}
-      <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/[0.03]">
-        <CardContent className="p-8">
+      <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/[0.03] overflow-hidden">
+        <CardContent className="p-4 sm:p-8">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <div className="hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
               <Sparkles className="h-5 w-5 text-primary" />
             </div>
-            <div className="flex-1 space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-primary">今日のお題</p>
-                <div className="relative flex gap-1 rounded-lg bg-muted/60 p-0.5">
+            <div className="flex-1 min-w-0 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary sm:hidden" />
+                  <p className="text-sm font-medium text-primary">今日のお題</p>
+                </div>
+                <div className="relative flex gap-1 rounded-lg bg-muted/60 p-0.5 self-start">
                   {DAILY_MODES.map(({ key, label }) => (
                     <button
                       key={key}
@@ -162,10 +168,10 @@ export default function DashboardPage() {
                 </div>
               ) : dailyPrompts ? (
                 <>
-                  <p className="font-serif text-xl leading-relaxed">
+                  <p className="font-serif text-lg sm:text-xl leading-relaxed break-words">
                     {dailyPrompts[activeTab].prompt}
                   </p>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                     <Badge variant="secondary" className="font-normal">
                       推奨: {dailyPrompts[activeTab].recommendedWords}語
                     </Badge>
@@ -181,7 +187,7 @@ export default function DashboardPage() {
                   お題を取得できませんでした。ライティング画面から始めてみましょう。
                 </p>
               )}
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-2 sm:gap-3">
                 <Link
                   to={`/write/${DAILY_MODES.find((m) => m.key === activeTab)!.mode}`}
                   state={dailyPrompts ? { dailyPrompt: dailyPrompts[activeTab] } : undefined}
@@ -257,6 +263,20 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Floating Feedback Button */}
+      <button
+        onClick={() => setFeedbackModalOpen(true)}
+        className="fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-95"
+      >
+        <MessageSquare className="h-5 w-5" />
+      </button>
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        open={feedbackModalOpen}
+        onOpenChange={setFeedbackModalOpen}
+      />
     </div>
   );
 }

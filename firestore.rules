@@ -53,6 +53,9 @@ service cloud.firestore {
       allow read: if request.auth != null;
     }
 
+    // Feedback: server-side only (via Cloud Functions with rate limiting)
+    // No client access - Admin SDK only
+
     // Global usage: no client access (admin SDK only)
     // No rules = no client access
   }
