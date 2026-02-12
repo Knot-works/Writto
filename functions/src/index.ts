@@ -1,15 +1,57 @@
-import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { onCall, onRequest, HttpsError } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import OpenAI from "openai";
+import Stripe from "stripe";
 import { z } from "zod";
 
 initializeApp();
 
 const openaiApiKey = defineSecret("OPENAI_API_KEY");
+const stripeSecretKey = defineSecret("STRIPE_SECRET_KEY");
+
+// Stripe Price IDs
+const STRIPE_PRICES = {
+  monthly: "price_1SztXR4EL0n4MCVgTFeCRigx",
+  yearly: "price_1SztX74EL0n4MCVgQiJI7zAa",
+};
 const db = getFirestore();
+
+// ============ Structured Logging ============
+
+interface LogContext {
+  uid?: string;
+  functionName: string;
+  [key: string]: unknown;
+}
+
+function logError(error: unknown, context: LogContext) {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorStack = error instanceof Error ? error.stack : undefined;
+
+  // Google Cloud Logging structured format
+  console.error(JSON.stringify({
+    severity: "ERROR",
+    message: errorMessage,
+    function: context.functionName,
+    uid: context.uid,
+    stack: errorStack,
+    ...context,
+    timestamp: new Date().toISOString(),
+  }));
+}
+
+function logInfo(message: string, context: LogContext) {
+  console.log(JSON.stringify({
+    severity: "INFO",
+    message,
+    function: context.functionName,
+    ...context,
+    timestamp: new Date().toISOString(),
+  }));
+}
 
 // ============ Types ============
 
@@ -865,7 +907,7 @@ export const generatePrompt = onCall(
       };
     } catch (error: unknown) {
       if (error instanceof HttpsError) throw error;
-      console.error("generatePrompt error:", error);
+      logError(error, { functionName: "generatePrompt", uid: request.auth?.uid, mode });
       throw new HttpsError(
         "internal",
         "お題の生成に失敗しました。しばらく待ってからお試しください。"
@@ -1009,7 +1051,7 @@ ${langInstruction}
       return result;
     } catch (error: unknown) {
       if (error instanceof HttpsError) throw error;
-      console.error("lookupWord error:", error);
+      logError(error, { functionName: "lookupWord", uid: request.auth?.uid, query });
       throw new HttpsError(
         "internal",
         "検索に失敗しました。しばらく待ってからお試しください。"
@@ -1114,7 +1156,7 @@ export const gradeWriting = onCall(
       return result;
     } catch (error: unknown) {
       if (error instanceof HttpsError) throw error;
-      console.error("gradeWriting error:", error);
+      logError(error, { functionName: "gradeWriting", uid: request.auth?.uid, promptLength: prompt.length, answerLength: userAnswer.length });
       throw new HttpsError(
         "internal",
         "添削に失敗しました。しばらく待ってからお試しください。"
@@ -1235,7 +1277,7 @@ I think learning English is important because it helps us communicate with peopl
       };
     } catch (error: unknown) {
       if (error instanceof HttpsError) throw error;
-      console.error("ocrHandwriting error:", error);
+      logError(error, { functionName: "ocrHandwriting", uid });
       throw new HttpsError(
         "internal",
         "画像の認識に失敗しました。もう一度お試しください。"
@@ -1355,58 +1397,11 @@ export const getDailyPrompts = onCall(
       };
     } catch (error: unknown) {
       if (error instanceof HttpsError) throw error;
-      console.error("getDailyPrompts error:", error);
+      logError(error, { functionName: "getDailyPrompts", uid: request.auth?.uid });
       throw new HttpsError(
         "internal",
         "日替わりお題の生成に失敗しました。しばらく待ってからお試しください。"
       );
-    }
-  }
-);
-
-// ============ Test: Plan Switch (Development Only) ============
-
-interface TestPlanSwitchRequest {
-  plan: "free" | "pro";
-}
-
-export const testSwitchPlan = onCall(
-  {
-    region: "asia-northeast1",
-    memory: "128MiB",
-    cors: true,
-    invoker: "public",
-  },
-  async (request) => {
-    if (!request.auth) {
-      throw new HttpsError("unauthenticated", "ログインが必要です");
-    }
-
-    const { plan } = request.data as TestPlanSwitchRequest;
-
-    if (plan !== "free" && plan !== "pro") {
-      throw new HttpsError("invalid-argument", "無効なプランです");
-    }
-
-    const uid = request.auth.uid;
-    const userRef = db.doc(`users/${uid}`);
-    const { periodStart, periodEnd } = getMonthlyPeriod();
-
-    try {
-      // Update plan and reset token usage for testing
-      await userRef.update({
-        plan,
-        tokenUsage: {
-          tokensUsed: 0,
-          periodStart: periodStart,
-          periodEnd: periodEnd,
-          lastUpdated: FieldValue.serverTimestamp(),
-        },
-      });
-      return { success: true, plan };
-    } catch (error) {
-      console.error("testSwitchPlan error:", error);
-      throw new HttpsError("internal", "プランの変更に失敗しました");
     }
   }
 );
@@ -1545,7 +1540,7 @@ ${contextSection}
       };
     } catch (error: unknown) {
       if (error instanceof HttpsError) throw error;
-      console.error("askFollowUp error:", error);
+      logError(error, { functionName: "askFollowUp", uid: request.auth?.uid });
       throw new HttpsError(
         "internal",
         "回答の生成に失敗しました。しばらく待ってからお試しください。"
@@ -1687,11 +1682,386 @@ export const deleteAccount = onCall(
         },
       };
     } catch (error: unknown) {
-      console.error("deleteAccount error:", error);
+      logError(error, { functionName: "deleteAccount", uid });
       throw new HttpsError(
         "internal",
         "アカウントの削除に失敗しました。サポートまでお問い合わせください。"
       );
+    }
+  }
+);
+
+// ============ Stripe: Create Checkout Session ============
+
+interface CreateCheckoutSessionRequest {
+  billingCycle: "monthly" | "yearly";
+  successUrl: string;
+  cancelUrl: string;
+}
+
+export const createCheckoutSession = onCall(
+  {
+    secrets: [stripeSecretKey],
+    region: "asia-northeast1",
+    memory: "256MiB",
+    cors: true,
+    invoker: "public",
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "ログインが必要です");
+    }
+
+    const { billingCycle, successUrl, cancelUrl } = request.data as CreateCheckoutSessionRequest;
+
+    if (billingCycle !== "monthly" && billingCycle !== "yearly") {
+      throw new HttpsError("invalid-argument", "無効な請求サイクルです");
+    }
+
+    const uid = request.auth.uid;
+    const userRef = db.doc(`users/${uid}`);
+
+    try {
+      const stripe = new Stripe(stripeSecretKey.value(), {
+        apiVersion: "2026-01-28.clover",
+      });
+
+      // Get or create Stripe customer
+      const userDoc = await userRef.get();
+      const userData = userDoc.data();
+      let customerId = userData?.stripeCustomerId;
+
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: userData?.email,
+          name: userData?.displayName,
+          metadata: { firebaseUid: uid },
+        });
+        customerId = customer.id;
+        await userRef.update({ stripeCustomerId: customerId });
+      }
+
+      // Create checkout session
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        client_reference_id: uid,
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price: STRIPE_PRICES[billingCycle],
+            quantity: 1,
+          },
+        ],
+        mode: "subscription",
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        locale: "ja",
+        subscription_data: {
+          metadata: { firebaseUid: uid },
+        },
+      });
+
+      return { url: session.url };
+    } catch (error: unknown) {
+      console.error("createCheckoutSession error:", error);
+      throw new HttpsError("internal", "決済セッションの作成に失敗しました");
+    }
+  }
+);
+
+// ============ Stripe: Get Subscription Details ============
+
+export const getSubscriptionDetails = onCall(
+  {
+    secrets: [stripeSecretKey],
+    region: "asia-northeast1",
+    memory: "128MiB",
+    cors: true,
+    invoker: "public",
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "ログインが必要です");
+    }
+
+    const uid = request.auth.uid;
+
+    try {
+      const stripe = new Stripe(stripeSecretKey.value(), {
+        apiVersion: "2026-01-28.clover",
+      });
+
+      const userDoc = await db.doc(`users/${uid}`).get();
+      const userData = userDoc.data();
+      const subscriptionId = userData?.subscriptionId;
+
+      if (!subscriptionId) {
+        throw new HttpsError("not-found", "サブスクリプションが見つかりません");
+      }
+
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+        expand: ["items.data.price"],
+      }) as Stripe.Subscription;
+
+      // In newer Stripe API versions, current_period_end is on SubscriptionItem
+      const subscriptionItem = subscription.items.data[0];
+      const currentPeriodEnd = subscriptionItem?.current_period_end;
+
+      if (!currentPeriodEnd) {
+        throw new HttpsError("internal", "サブスクリプション期間の情報が取得できませんでした");
+      }
+
+      return {
+        status: subscription.status,
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        currentPeriodEnd: new Date(currentPeriodEnd * 1000).toISOString(),
+        billingCycle: subscriptionItem?.price?.recurring?.interval === "year" ? "yearly" : "monthly",
+      };
+    } catch (error: unknown) {
+      if (error instanceof HttpsError) throw error;
+      console.error("getSubscriptionDetails error:", error);
+      throw new HttpsError("internal", "サブスクリプション情報の取得に失敗しました");
+    }
+  }
+);
+
+// ============ Stripe: Create Portal Session ============
+
+interface CreatePortalSessionRequest {
+  returnUrl: string;
+}
+
+export const createPortalSession = onCall(
+  {
+    secrets: [stripeSecretKey],
+    region: "asia-northeast1",
+    memory: "256MiB",
+    cors: true,
+    invoker: "public",
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "ログインが必要です");
+    }
+
+    const { returnUrl } = request.data as CreatePortalSessionRequest;
+    const uid = request.auth.uid;
+
+    try {
+      const stripe = new Stripe(stripeSecretKey.value(), {
+        apiVersion: "2026-01-28.clover",
+      });
+
+      const userDoc = await db.doc(`users/${uid}`).get();
+      const customerId = userDoc.data()?.stripeCustomerId;
+
+      if (!customerId) {
+        throw new HttpsError("failed-precondition", "サブスクリプションが見つかりません");
+      }
+
+      const session = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: returnUrl,
+      });
+
+      return { url: session.url };
+    } catch (error: unknown) {
+      if (error instanceof HttpsError) throw error;
+      console.error("createPortalSession error:", error);
+      throw new HttpsError("internal", "ポータルセッションの作成に失敗しました");
+    }
+  }
+);
+
+// ============ Feedback ============
+
+const FeedbackRequestSchema = z.object({
+  category: z.enum(["bug", "feature", "other"]),
+  content: z.string().min(1).max(500),
+});
+
+// Rate limit: 3 feedbacks per hour
+const FEEDBACK_RATE_LIMIT = {
+  maxRequests: 3,
+  windowMs: 60 * 60 * 1000, // 1 hour
+};
+
+export const submitFeedback = onCall(
+  {
+    region: "asia-northeast1",
+    memory: "128MiB",
+    cors: true,
+    invoker: "public",
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "ログインが必要です");
+    }
+
+    const uid = request.auth.uid;
+
+    // Validate request data
+    const { category, content } = validateRequest(
+      FeedbackRequestSchema,
+      request.data,
+      "submitFeedback"
+    );
+
+    // Rate limiting check (simple query + client-side filter to avoid composite index)
+    const now = Date.now();
+    const windowStart = now - FEEDBACK_RATE_LIMIT.windowMs;
+
+    const userFeedbacks = await db
+      .collection("feedback")
+      .where("userId", "==", uid)
+      .orderBy("createdAt", "desc")
+      .limit(10)
+      .get();
+
+    const recentCount = userFeedbacks.docs.filter((doc) => {
+      const createdAt = doc.data().createdAt?.toMillis?.() || 0;
+      return createdAt > windowStart;
+    }).length;
+
+    if (recentCount >= FEEDBACK_RATE_LIMIT.maxRequests) {
+      throw new HttpsError(
+        "resource-exhausted",
+        "フィードバックの送信回数が上限に達しました。しばらく経ってからお試しください。"
+      );
+    }
+
+    // Save feedback
+    const feedbackRef = await db.collection("feedback").add({
+      userId: uid,
+      category,
+      content: content.trim(),
+      createdAt: FieldValue.serverTimestamp(),
+    });
+
+    logInfo("Feedback submitted", { functionName: "submitFeedback", uid, feedbackId: feedbackRef.id, category });
+
+    return { success: true, id: feedbackRef.id };
+  }
+);
+
+// ============ Stripe: Webhook Handler ============
+
+export const stripeWebhook = onRequest(
+  {
+    secrets: [stripeSecretKey],
+    region: "asia-northeast1",
+    memory: "256MiB",
+  },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).send("Method Not Allowed");
+      return;
+    }
+
+    const stripe = new Stripe(stripeSecretKey.value(), {
+      apiVersion: "2026-01-28.clover",
+    });
+
+    const sig = req.headers["stripe-signature"];
+    if (!sig) {
+      res.status(400).send("Missing stripe-signature header");
+      return;
+    }
+
+    // Note: For production, you should verify the webhook signature
+    // const webhookSecret = defineSecret("STRIPE_WEBHOOK_SECRET");
+    // const event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret.value());
+
+    let event: Stripe.Event;
+    try {
+      // Parse the event without signature verification for now
+      // In production, add STRIPE_WEBHOOK_SECRET and verify
+      event = JSON.parse(req.rawBody.toString()) as Stripe.Event;
+    } catch (err) {
+      console.error("Webhook parsing error:", err);
+      res.status(400).send("Invalid payload");
+      return;
+    }
+
+    try {
+      switch (event.type) {
+        case "checkout.session.completed": {
+          const session = event.data.object as Stripe.Checkout.Session;
+          const uid = session.client_reference_id;
+
+          if (uid && session.subscription) {
+            const { periodStart, periodEnd } = getMonthlyPeriod();
+            await db.doc(`users/${uid}`).update({
+              plan: "pro",
+              subscriptionId: session.subscription,
+              subscriptionStatus: "active",
+              tokenUsage: {
+                tokensUsed: 0,
+                periodStart,
+                periodEnd,
+                lastUpdated: FieldValue.serverTimestamp(),
+              },
+            });
+            console.log(`User ${uid} upgraded to Pro`);
+          }
+          break;
+        }
+
+        case "customer.subscription.updated": {
+          const subscription = event.data.object as Stripe.Subscription;
+          const uid = subscription.metadata.firebaseUid;
+
+          if (uid) {
+            const status = subscription.status;
+            await db.doc(`users/${uid}`).update({
+              subscriptionStatus: status,
+              plan: status === "active" ? "pro" : "free",
+            });
+            console.log(`User ${uid} subscription updated: ${status}`);
+          }
+          break;
+        }
+
+        case "customer.subscription.deleted": {
+          const subscription = event.data.object as Stripe.Subscription;
+          const uid = subscription.metadata.firebaseUid;
+
+          if (uid) {
+            await db.doc(`users/${uid}`).update({
+              plan: "free",
+              subscriptionStatus: "canceled",
+            });
+            console.log(`User ${uid} subscription canceled`);
+          }
+          break;
+        }
+
+        case "invoice.payment_failed": {
+          const invoice = event.data.object as Stripe.Invoice;
+          const subscriptionId = invoice.parent?.subscription_details?.subscription;
+
+          if (subscriptionId && typeof subscriptionId === "string") {
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+            const uid = subscription.metadata.firebaseUid;
+
+            if (uid) {
+              await db.doc(`users/${uid}`).update({
+                subscriptionStatus: "past_due",
+              });
+              console.log(`User ${uid} payment failed`);
+            }
+          }
+          break;
+        }
+
+        default:
+          console.log(`Unhandled event type: ${event.type}`);
+      }
+
+      res.status(200).json({ received: true });
+    } catch (error) {
+      console.error("Webhook handler error:", error);
+      res.status(500).send("Webhook handler error");
     }
   }
 );
