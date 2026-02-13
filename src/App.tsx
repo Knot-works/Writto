@@ -18,6 +18,7 @@ import CommercialPage from "@/routes/legal/commercial";
 import ContactPage from "@/routes/contact";
 import FAQPage from "@/routes/faq";
 import AboutPage from "@/routes/about";
+import NotFoundPage from "@/routes/not-found";
 
 export function App() {
   return (
@@ -45,6 +46,9 @@ export function App() {
         <Route path="/mistakes" element={<MistakesPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
+
+      {/* 404 */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
