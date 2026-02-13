@@ -1594,8 +1594,17 @@ export const getTokenUsage = onCall(
     const profileRef = db.doc(`users/${uid}`);
 
     const profileSnap = await profileRef.get();
+
+    // Return default values for users who haven't completed onboarding yet
     if (!profileSnap.exists) {
-      throw new HttpsError("not-found", "ユーザーが見つかりません");
+      return {
+        tokensUsed: 0,
+        tokenLimit: TOKEN_LIMITS.free,
+        periodStart: null,
+        periodEnd: null,
+        daysUntilReset: -1,
+        plan: "free",
+      };
     }
 
     const profileData = profileSnap.data()!;
