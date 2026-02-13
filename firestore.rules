@@ -17,8 +17,7 @@ service cloud.firestore {
       allow update: if isOwner(userId)
                     && request.resource.data.plan == resource.data.plan
                     && request.resource.data.createdAt == resource.data.createdAt
-                    && (!("tokenUsage" in request.resource.data) ||
-                        request.resource.data.tokenUsage == resource.data.tokenUsage);
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['tokenUsage']);
 
       // Writings: create-only (immutable after submission)
       // Prevents feedback/rank manipulation

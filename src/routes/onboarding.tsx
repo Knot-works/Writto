@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { TagInput } from "@/components/ui/tag-input";
+import { Badge } from "@/components/ui/badge";
 import { RankBadge } from "@/components/writing/rank-badge";
 import {
   Briefcase,
@@ -775,6 +776,46 @@ export default function OnboardingPage() {
                       )}
                     </CardContent>
                   </Card>
+
+                  {/* Corrections */}
+                  {feedback.improvements && feedback.improvements.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        修正ポイント（{feedback.improvements.length}件）
+                      </p>
+                      <div className="space-y-2 max-h-[240px] overflow-y-auto">
+                        {feedback.improvements.map((imp, index) => {
+                          const typeStyles: Record<string, { bg: string; border: string; text: string; label: string }> = {
+                            grammar: { bg: "bg-rose-500/10", border: "border-rose-500/30", text: "text-rose-600", label: "文法" },
+                            vocabulary: { bg: "bg-amber-500/10", border: "border-amber-500/30", text: "text-amber-600", label: "語彙" },
+                            structure: { bg: "bg-sky-500/10", border: "border-sky-500/30", text: "text-sky-600", label: "構成" },
+                            content: { bg: "bg-violet-500/10", border: "border-violet-500/30", text: "text-violet-600", label: "内容" },
+                          };
+                          const style = typeStyles[imp.type] || typeStyles.grammar;
+                          return (
+                            <div
+                              key={index}
+                              className={`rounded-lg border ${style.border} ${style.bg} p-3`}
+                            >
+                              <Badge
+                                variant="secondary"
+                                className={`${style.bg} ${style.text} border-0 text-[10px] font-medium mb-2`}
+                              >
+                                {style.label}
+                              </Badge>
+                              <div className="rounded bg-background/80 px-2 py-1.5 mb-2">
+                                <p className="text-sm text-muted-foreground">{imp.original}</p>
+                                <p className={`text-sm font-medium ${style.text}`}>→ {imp.suggested}</p>
+                              </div>
+                              <p className="text-xs text-foreground/70 leading-relaxed">
+                                {imp.explanation}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Continue Button */}
                   <Button
