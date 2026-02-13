@@ -754,7 +754,7 @@ export default function OnboardingPage() {
 
                   {/* Score Summary - Compact horizontal */}
                   <Card className="overflow-hidden">
-                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/5 to-primary/10">
+                    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-primary/5 to-primary/10">
                       <div className="flex items-center gap-4">
                         <RankBadge rank={feedback.overallRank as Rank} size="lg" />
                         <div className="flex gap-3">
@@ -773,7 +773,7 @@ export default function OnboardingPage() {
                       </div>
                     </div>
                     {feedback.summary && (
-                      <div className="px-4 py-3 border-t">
+                      <div className="px-4 py-2 border-t">
                         <p className="text-sm text-foreground/80 leading-relaxed">
                           {feedback.summary}
                         </p>
@@ -793,7 +793,7 @@ export default function OnboardingPage() {
                           </span>
                         </h4>
                       </div>
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {feedback.improvements.map((imp, index) => {
                           const typeStyles: Record<string, { bg: string; border: string; text: string; label: string }> = {
                             grammar: { bg: "bg-rose-500/10", border: "border-rose-500/30", text: "text-rose-600 dark:text-rose-400", label: "文法" },
@@ -807,18 +807,18 @@ export default function OnboardingPage() {
                               key={index}
                               className={`border ${style.border} ${style.bg}`}
                             >
-                              <CardContent className="p-4">
+                              <CardContent className="p-3">
                                 <Badge
                                   variant="secondary"
-                                  className={`${style.bg} ${style.text} border-0 text-xs font-medium mb-3`}
+                                  className={`${style.bg} ${style.text} border-0 text-xs font-medium mb-2`}
                                 >
                                   {style.label}
                                 </Badge>
-                                <div className="rounded-lg bg-background/80 px-4 py-3 mb-3">
-                                  <p className="text-base text-muted-foreground line-through decoration-1">
+                                <div className="rounded-lg bg-background/80 px-3 py-2 mb-2">
+                                  <p className="text-sm text-muted-foreground line-through decoration-1">
                                     {imp.original}
                                   </p>
-                                  <p className={`text-base font-semibold ${style.text} mt-1`}>
+                                  <p className={`text-sm font-semibold ${style.text} mt-0.5`}>
                                     → {imp.suggested}
                                   </p>
                                 </div>
