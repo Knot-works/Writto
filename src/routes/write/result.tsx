@@ -1,7 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
+import { useGrading } from "@/contexts/grading-context";
+import { useToken } from "@/contexts/token-context";
+import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 import { getWriting } from "@/lib/firestore";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -22,6 +26,7 @@ import {
   FileText,
   Volume2,
   Square,
+  Crown,
 } from "lucide-react";
 import {
   type Writing,
@@ -34,14 +39,78 @@ export default function ResultPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
+  // Grading context for pre-fetch flow
+  const { status: gradingStatus, result: gradingResult, isRateLimit, reset: resetGrading } = useGrading();
+  const { refresh: refreshTokenUsage } = useToken();
+  const { open: openUpgradeModal } = useUpgradeModal();
+
   const [writing, setWriting] = useState<Writing | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [chatOpen, setChatOpen] = useState(false); // Start closed on mobile
   const [isSpeaking, setIsSpeaking] = useState(false);
 
+  // Handle grading context for "pending" route
+  const isPending = id === "pending";
+
+  // When grading completes, update URL and set writing
   useEffect(() => {
-    if (!user || !id) return;
+    if (!isPending) return;
+
+    if (gradingStatus === "success" && gradingResult) {
+      // Grading completed - update URL without navigation (replace history)
+      window.history.replaceState(null, "", `/write/result/${gradingResult.writingId}`);
+      // Set the writing data from context
+      setWriting({
+        id: gradingResult.writingId,
+        mode: gradingResult.mode,
+        prompt: gradingResult.prompt,
+        promptHint: gradingResult.promptHint,
+        recommendedWords: gradingResult.recommendedWords,
+        userAnswer: gradingResult.userAnswer,
+        feedback: gradingResult.feedback,
+        wordCount: gradingResult.wordCount,
+        createdAt: new Date(),
+      });
+      setLoading(false);
+      // Reset grading context for next use
+      resetGrading();
+    } else if (gradingStatus === "error") {
+      // Grading failed - show error and redirect back
+      if (isRateLimit) {
+        refreshTokenUsage();
+        toast.custom(
+          () => (
+            <div className="w-[360px] rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-4 shadow-lg">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
+                  <Crown className="h-5 w-5 text-amber-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-amber-900">
+                    無料枠を使い切りました
+                  </p>
+                  <p className="mt-1 text-sm text-amber-700/80">
+                    Proプランで学習を続けましょう
+                  </p>
+                </div>
+              </div>
+            </div>
+          ),
+          { duration: 4000 }
+        );
+        openUpgradeModal();
+      } else {
+        toast.error("添削に失敗しました");
+      }
+      resetGrading();
+      navigate("/write", { replace: true });
+    }
+  }, [isPending, gradingStatus, gradingResult, isRateLimit, resetGrading, refreshTokenUsage, openUpgradeModal, navigate]);
+
+  // Load writing from Firestore for direct URL access
+  useEffect(() => {
+    if (!user || !id || isPending) return;
 
     // Check localStorage fallback first (for MVP without Firebase)
     if (id.startsWith("local-")) {
@@ -74,7 +143,7 @@ export default function ResultPage() {
         }
         setLoading(false);
       });
-  }, [user, id]);
+  }, [user, id, isPending]);
 
   const handleCopyModelAnswer = () => {
     if (!writing?.feedback.modelAnswer) return;
@@ -143,6 +212,35 @@ export default function ResultPage() {
     },
     []
   );
+
+  // Show grading-in-progress UI for pending state
+  if (isPending && gradingStatus === "loading") {
+    return (
+      <div className="mx-auto max-w-4xl px-4">
+        <div className="flex min-h-[60vh] flex-col items-center justify-center">
+          <div className="flex flex-col items-center gap-6 text-center">
+            <div className="relative">
+              <div className="h-20 w-20 rounded-full border-4 border-primary/20" />
+              <div className="absolute inset-0 h-20 w-20 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+            </div>
+            <div className="space-y-2">
+              <p className="font-serif text-xl font-medium grading-pulse">
+                添削中...
+              </p>
+              <p className="text-sm text-muted-foreground">
+                AIがあなたの英文を分析しています
+              </p>
+            </div>
+            <div className="flex gap-1">
+              <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+              <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+              <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

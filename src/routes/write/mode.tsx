@@ -1,15 +1,17 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense, lazy } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
 import { useToken } from "@/contexts/token-context";
 import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
-import { saveWriting, saveMistakes } from "@/lib/firestore";
-import { callGeneratePrompt, callGradeWriting, isRateLimitError } from "@/lib/functions";
+import { useGrading } from "@/contexts/grading-context";
+import { callGeneratePrompt, isRateLimitError } from "@/lib/functions";
 import { Analytics } from "@/lib/firebase";
 import { getEstimatedRemaining } from "@/lib/rate-limits";
 import { toast } from "sonner";
 import { DictionaryPanel } from "@/components/writing/dictionary-panel";
-import { OcrInput } from "@/components/writing/ocr-input";
+
+// Lazy load OcrInput to avoid loading pdfjs-dist (~1.3MB) until needed
+const OcrInput = lazy(() => import("@/components/writing/ocr-input").then(m => ({ default: m.OcrInput })));
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,8 +40,9 @@ import { type WritingMode, MODE_LABELS } from "@/types";
 
 export default function WritingPage() {
   const { user, profile } = useAuth();
-  const { tokenUsage, refresh: refreshTokenUsage } = useToken();
+  const { tokenUsage } = useToken();
   const { open: openUpgradeModal } = useUpgradeModal();
+  const { startGrading } = useGrading();
   const navigate = useNavigate();
   const location = useLocation();
   const { mode: modeParam } = useParams<{ mode: string }>();
@@ -57,7 +60,6 @@ export default function WritingPage() {
   const [userAnswer, setUserAnswer] = useState("");
   const [customInput, setCustomInput] = useState("");
   const [hobbyTopic, setHobbyTopic] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [dictOpen, setDictOpen] = useState(true);
   const [inputMode, setInputMode] = useState<"typing" | "ocr">("typing");
@@ -181,75 +183,24 @@ export default function WritingPage() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!user || !profile || !userAnswer.trim() || !prompt || isSubmittingRef.current || rateLimitHitRef.current) return;
     isSubmittingRef.current = true;
-    setSubmitting(true);
 
-    try {
-      const feedback = await callGradeWriting(
-        profile,
-        prompt,
-        userAnswer,
-        profile.explanationLang
-      );
+    // Start grading in background (non-blocking)
+    startGrading({
+      userId: user.uid,
+      profile,
+      mode,
+      prompt,
+      promptHint: hint,
+      recommendedWords,
+      userAnswer,
+      wordCount,
+    });
 
-      const writingId = await saveWriting(user.uid, {
-        mode,
-        prompt,
-        promptHint: hint,
-        recommendedWords,
-        userAnswer,
-        feedback,
-        wordCount,
-      });
-
-      // Track analytics
-      Analytics.writingSubmitted({ mode, wordCount, timeTakenSec: 0 });
-      Analytics.writingGraded({ mode, rank: feedback.overallRank });
-
-      // Save mistakes for the mistake journal (don't await - fire and forget)
-      if (feedback.improvements && feedback.improvements.length > 0) {
-        saveMistakes(user.uid, feedback.improvements, writingId, prompt).catch(
-          (err) => console.error("Failed to save mistakes:", err)
-        );
-      }
-
-      navigate(`/write/result/${writingId}`);
-    } catch (error) {
-      console.error("Failed to grade writing:", error);
-      Analytics.errorOccurred({ type: "grading", message: String(error), location: "handleSubmit" });
-      if (isRateLimitError(error)) {
-        rateLimitHitRef.current = true;
-        refreshTokenUsage();
-        toast.custom(
-          () => (
-            <div className="w-[360px] rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-4 shadow-lg">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
-                  <Crown className="h-5 w-5 text-amber-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-amber-900">
-                    無料枠を使い切りました
-                  </p>
-                  <p className="mt-1 text-sm text-amber-700/80">
-                    Proプランで学習を続けましょう
-                  </p>
-                </div>
-              </div>
-            </div>
-          ),
-          { duration: 4000 }
-        );
-        openUpgradeModal();
-      } else {
-        toast.error("添削に失敗しました");
-      }
-    } finally {
-      isSubmittingRef.current = false;
-      setSubmitting(false);
-    }
+    // Navigate immediately - result page will show loading state
+    navigate("/write/result/pending");
   };
 
   return (
@@ -454,32 +405,7 @@ export default function WritingPage() {
 
         {/* Writing Area */}
         {prompt && (
-          <div className="space-y-3 relative">
-            {/* Grading Overlay */}
-            {submitting && (
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-xl bg-card/95 backdrop-blur-sm animate-fade-in">
-                <div className="flex flex-col items-center gap-4 p-8">
-                  <div className="relative">
-                    <div className="h-16 w-16 rounded-full border-4 border-primary/20" />
-                    <div className="absolute inset-0 h-16 w-16 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-                  </div>
-                  <div className="text-center space-y-1">
-                    <p className="font-serif text-lg font-medium grading-pulse">
-                      添削中...
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      AIがあなたの英文を分析しています
-                    </p>
-                  </div>
-                  <div className="flex gap-1 mt-2">
-                    <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
-                  </div>
-                </div>
-              </div>
-            )}
-
+          <div className="space-y-3">
             {/* Header with Input Mode Toggle */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -566,14 +492,21 @@ export default function WritingPage() {
             {inputMode === "ocr" ? (
               <Card>
                 <CardContent className="p-6">
-                  <OcrInput
-                    onComplete={(text) => {
-                      setUserAnswer(text);
-                      setInputMode("typing");
-                      toast.success("テキストを読み取りました");
-                    }}
-                    onCancel={() => setInputMode("typing")}
-                  />
+                  <Suspense fallback={
+                    <div className="flex flex-col items-center gap-4 py-12">
+                      <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+                      <p className="text-sm text-muted-foreground">手書き認識を読み込み中...</p>
+                    </div>
+                  }>
+                    <OcrInput
+                      onComplete={(text) => {
+                        setUserAnswer(text);
+                        setInputMode("typing");
+                        toast.success("テキストを読み取りました");
+                      }}
+                      onCancel={() => setInputMode("typing")}
+                    />
+                  </Suspense>
                 </CardContent>
               </Card>
             ) : (
@@ -585,29 +518,19 @@ export default function WritingPage() {
                     value={userAnswer}
                     onChange={(e) => setUserAnswer(e.target.value)}
                     rows={12}
-                    disabled={submitting}
                     maxLength={5000}
-                    className="min-h-[300px] resize-none border-border/60 bg-card text-base leading-relaxed focus-visible:ring-primary disabled:opacity-50"
+                    className="min-h-[300px] resize-none border-border/60 bg-card text-base leading-relaxed focus-visible:ring-primary"
                   />
                 </div>
                 <div className="flex items-center justify-end gap-3">
                   <Button
                     onClick={gradingLimitReached ? openUpgradeModal : handleSubmit}
-                    disabled={submitting || wordCount < 5}
+                    disabled={wordCount < 5}
                     className="gap-2 px-8 btn-bounce"
                     size="lg"
                   >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        添削中...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4" />
-                        添削する
-                      </>
-                    )}
+                    <Send className="h-4 w-4" />
+                    添削する
                   </Button>
                 </div>
               </>

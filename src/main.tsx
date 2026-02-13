@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "@/contexts/auth-context";
 import { TokenProvider } from "@/contexts/token-context";
 import { UpgradeModalProvider } from "@/contexts/upgrade-modal-context";
+import { GradingProvider } from "@/contexts/grading-context";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { Toaster } from "@/components/ui/sonner";
 import { App } from "./App";
@@ -16,8 +17,10 @@ createRoot(document.getElementById("root")!).render(
       <AuthProvider>
         <TokenProvider>
           <UpgradeModalProvider>
-            <App />
-            <Toaster />
+            <GradingProvider>
+              <App />
+              <Toaster />
+            </GradingProvider>
           </UpgradeModalProvider>
         </TokenProvider>
       </AuthProvider>
