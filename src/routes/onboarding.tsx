@@ -128,7 +128,6 @@ export default function OnboardingPage() {
         targetExpressions: [],
         explanationLang: "ja",
         plan: "free",
-        createdAt: new Date(),
       };
 
       // Add optional fields only if they have values

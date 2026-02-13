@@ -46,10 +46,21 @@ export async function saveUserProfile(
   userId: string,
   profile: Partial<UserProfile>
 ): Promise<void> {
-  await setDoc(doc(db, "users", userId), {
-    ...profile,
-    createdAt: Timestamp.now(),
-  }, { merge: true });
+  const docRef = doc(db, "users", userId);
+  const existing = await getDoc(docRef);
+
+  if (existing.exists()) {
+    // Update: don't change createdAt or plan (protected by security rules)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { createdAt: _createdAt, plan: _plan, ...updates } = profile;
+    await updateDoc(docRef, updates);
+  } else {
+    // Create: set all fields including createdAt
+    await setDoc(docRef, {
+      ...profile,
+      createdAt: Timestamp.now(),
+    });
+  }
 }
 
 export async function updateUserProfile(
