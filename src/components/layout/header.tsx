@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/dialog";
 import { Dialog as DialogPrimitive, VisuallyHidden } from "radix-ui";
 import {
-  PenLine,
   Settings,
   LogOut,
   Sparkles,
@@ -179,11 +178,12 @@ export function Header() {
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary transition-transform group-hover:scale-105">
-              <PenLine className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-serif text-lg font-medium tracking-tight">Writto</span>
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+            <img
+              src="/logo.png"
+              alt="Writto"
+              className="h-9 w-auto transition-transform group-hover:scale-105"
+            />
+            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
               Beta
             </span>
           </Link>

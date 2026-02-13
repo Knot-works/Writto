@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
-import { PenLine } from "lucide-react";
 
 export default function LoginPage() {
   const { user, profile, loading, profileLoaded, signInWithGoogle } = useAuth();
@@ -30,13 +29,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen paper-texture">
       {/* Left: Branding */}
       <div className="hidden flex-1 flex-col justify-between bg-primary p-12 lg:flex">
-        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-foreground/20">
-            <PenLine className="h-6 w-6 text-primary-foreground" />
-          </div>
-          <span className="font-serif text-2xl text-primary-foreground">
-            Writto
-          </span>
+        <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
+          <img src="/logo.png" alt="Writto" className="h-9 w-auto brightness-0 invert" />
         </Link>
 
         <div className="max-w-md">
@@ -61,10 +55,7 @@ export default function LoginPage() {
       <div className="flex flex-1 items-center justify-center p-8">
         <div className="w-full max-w-sm space-y-8">
           <Link to="/" className="block text-center lg:hidden hover:opacity-80 transition-opacity">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
-              <PenLine className="h-8 w-8 text-primary-foreground" />
-            </div>
-            <h1 className="font-serif text-3xl">Writto</h1>
+            <img src="/logo.png" alt="Writto" className="mx-auto h-12 w-auto mb-4" />
             <p className="mt-2 text-muted-foreground">
               英語ライティング学習
             </p>

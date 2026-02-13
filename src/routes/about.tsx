@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, PenLine, Target, Heart, Sparkles, Users } from "lucide-react";
+import { ArrowLeft, Target, Heart, Sparkles, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -27,11 +27,8 @@ export default function AboutPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <PenLine className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-serif text-lg font-medium">Writto</span>
+          <Link to="/" className="flex items-center">
+            <img src="/logo.png" alt="Writto" className="h-8 w-auto" />
           </Link>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/" className="gap-1.5">
@@ -48,12 +45,9 @@ export default function AboutPage() {
         <div className="pointer-events-none absolute -left-32 top-40 h-96 w-96 rounded-full bg-accent/5 blur-3xl" />
 
         <div className="relative mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/20">
-              <PenLine className="h-8 w-8 text-primary-foreground" />
-            </div>
+          <div className="flex items-center justify-center mb-6">
+            <img src="/logo.png" alt="Writto" className="h-14 sm:h-16 w-auto" />
           </div>
-          <h1 className="font-serif text-4xl text-center sm:text-5xl">Writto</h1>
           <p className="mt-4 text-center text-lg text-muted-foreground max-w-2xl mx-auto">
             「書ける」自分になるための、AI英語ライティング学習サービス
           </p>
@@ -229,11 +223,8 @@ export default function AboutPage() {
       {/* Footer */}
       <footer className="border-t border-border/50 bg-card/30 mt-12">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-6">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-              <PenLine className="h-3.5 w-3.5 text-primary-foreground" />
-            </div>
-            <span className="font-serif text-base font-medium">Writto</span>
+          <Link to="/" className="flex items-center">
+            <img src="/logo.png" alt="Writto" className="h-7 w-auto" />
           </Link>
           <p className="text-xs text-muted-foreground">
             &copy; 2026 Writto

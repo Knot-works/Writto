@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import {
-  PenLine,
   Target,
   BookOpen,
   BarChart3,
@@ -67,13 +66,8 @@ export default function LandingPage() {
       {/* Navigation */}
       <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <PenLine className="h-5 w-5" />
-            </div>
-            <span className="font-serif text-xl font-bold tracking-tight">
-              Writto
-            </span>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Writto" className="h-8 w-auto" />
             <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
               Beta
             </span>
@@ -261,11 +255,8 @@ export default function LandingPage() {
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {/* Brand */}
             <div className="sm:col-span-2 lg:col-span-1">
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <PenLine className="h-4 w-4" />
-                </div>
-                <span className="font-serif font-medium">Writto</span>
+              <div className="flex items-center gap-2 mb-4">
+                <img src="/logo.png" alt="Writto" className="h-7 w-auto" />
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 AIを活用した英語ライティング学習サービス
