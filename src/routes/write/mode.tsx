@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useToken } from "@/contexts/token-context";
 import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 import { useGrading } from "@/contexts/grading-context";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { callGeneratePrompt, isRateLimitError } from "@/lib/functions";
 import { Analytics } from "@/lib/firebase";
 import { getEstimatedRemaining } from "@/lib/rate-limits";
@@ -78,6 +79,13 @@ export default function WritingPage() {
   const wordCount = userAnswer.trim()
     ? userAnswer.trim().split(/\s+/).length
     : 0;
+
+  // Warn user when navigating away with unsaved content
+  const hasUnsavedContent = userAnswer.trim().length > 0 && !isSubmittingRef.current;
+  const { UnsavedChangesDialog } = useUnsavedChanges({
+    hasUnsavedChanges: hasUnsavedContent,
+    message: "入力中の英文が失われます。",
+  });
 
   const generatePrompt = useCallback(async (topicOverride?: string) => {
     if (!profile || isGeneratingRef.current || rateLimitHitRef.current) return;
@@ -209,7 +217,11 @@ export default function WritingPage() {
       <div className="min-w-0 flex-1 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+          >
             <ArrowLeft className="mr-1.5 h-4 w-4" />
             戻る
           </Button>
@@ -566,6 +578,9 @@ export default function WritingPage() {
           </aside>
         </>
       )}
+
+      {/* Unsaved changes confirmation dialog */}
+      <UnsavedChangesDialog />
     </div>
   );
 }

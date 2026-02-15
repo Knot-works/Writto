@@ -1,29 +1,88 @@
-import { StrictMode } from "react";
+import { StrictMode, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import { AuthProvider } from "@/contexts/auth-context";
-import { TokenProvider } from "@/contexts/token-context";
-import { UpgradeModalProvider } from "@/contexts/upgrade-modal-context";
-import { GradingProvider } from "@/contexts/grading-context";
-import { ScrollToTop } from "@/components/scroll-to-top";
-import { Toaster } from "@/components/ui/sonner";
-import { App } from "./App";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { RootLayout } from "@/components/root-layout";
+import { AppLayout } from "@/components/layout/app-layout";
 import "./index.css";
+
+// Page loading fallback
+function PageLoader() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+    </div>
+  );
+}
+
+// Lazy load all route components for code splitting
+const LandingPage = lazy(() => import("@/routes/landing"));
+const LoginPage = lazy(() => import("@/routes/login"));
+const PricingPage = lazy(() => import("@/routes/pricing"));
+const PrivacyPage = lazy(() => import("@/routes/privacy"));
+const TermsPage = lazy(() => import("@/routes/terms"));
+const CommercialPage = lazy(() => import("@/routes/legal/commercial"));
+const ContactPage = lazy(() => import("@/routes/contact"));
+const FAQPage = lazy(() => import("@/routes/faq"));
+const AboutPage = lazy(() => import("@/routes/about"));
+const NotFoundPage = lazy(() => import("@/routes/not-found"));
+const OnboardingPage = lazy(() => import("@/routes/onboarding"));
+const DashboardPage = lazy(() => import("@/routes/dashboard"));
+const WriteModePage = lazy(() => import("@/routes/write/index"));
+const WritingPage = lazy(() => import("@/routes/write/mode"));
+const ResultPage = lazy(() => import("@/routes/write/result"));
+const VocabularyPage = lazy(() => import("@/routes/vocabulary"));
+const HistoryPage = lazy(() => import("@/routes/history"));
+const MistakesPage = lazy(() => import("@/routes/mistakes"));
+const SettingsPage = lazy(() => import("@/routes/settings"));
+
+// Wrapper for lazy loaded components
+function LazyPage({ Component }: { Component: React.LazyExoticComponent<React.ComponentType> }) {
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <Component />
+    </Suspense>
+  );
+}
+
+const router = createBrowserRouter([
+  {
+    element: <RootLayout />,
+    children: [
+      // Public routes
+      { path: "/", element: <LazyPage Component={LandingPage} /> },
+      { path: "/login", element: <LazyPage Component={LoginPage} /> },
+      { path: "/onboarding", element: <LazyPage Component={OnboardingPage} /> },
+      { path: "/pricing", element: <LazyPage Component={PricingPage} /> },
+      { path: "/privacy", element: <LazyPage Component={PrivacyPage} /> },
+      { path: "/terms", element: <LazyPage Component={TermsPage} /> },
+      { path: "/legal/commercial", element: <LazyPage Component={CommercialPage} /> },
+      { path: "/contact", element: <LazyPage Component={ContactPage} /> },
+      { path: "/faq", element: <LazyPage Component={FAQPage} /> },
+      { path: "/about", element: <LazyPage Component={AboutPage} /> },
+
+      // Authenticated routes
+      {
+        element: <AppLayout />,
+        children: [
+          { path: "/dashboard", element: <LazyPage Component={DashboardPage} /> },
+          { path: "/write", element: <LazyPage Component={WriteModePage} /> },
+          { path: "/write/:mode", element: <LazyPage Component={WritingPage} /> },
+          { path: "/write/result/:id", element: <LazyPage Component={ResultPage} /> },
+          { path: "/vocabulary", element: <LazyPage Component={VocabularyPage} /> },
+          { path: "/history", element: <LazyPage Component={HistoryPage} /> },
+          { path: "/mistakes", element: <LazyPage Component={MistakesPage} /> },
+          { path: "/settings", element: <LazyPage Component={SettingsPage} /> },
+        ],
+      },
+
+      // 404
+      { path: "*", element: <LazyPage Component={NotFoundPage} /> },
+    ],
+  },
+]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>
-      <ScrollToTop />
-      <AuthProvider>
-        <TokenProvider>
-          <UpgradeModalProvider>
-            <GradingProvider>
-              <App />
-              <Toaster />
-            </GradingProvider>
-          </UpgradeModalProvider>
-        </TokenProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <RouterProvider router={router} />
   </StrictMode>
 );
