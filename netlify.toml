@@ -26,7 +26,7 @@
     # - connect-src: Firebase services (Firestore, Auth, Functions)
     # - frame-src: Firebase Auth popup + Google sign-in
     # - worker-src: PDF.js web worker
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://*.firebaseapp.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.cloudfunctions.net wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; img-src 'self' data: blob: https:; frame-src https://*.firebaseapp.com https://accounts.google.com https://auth.writto.knotwith.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self';"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://*.firebaseapp.com https://apis.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.cloudfunctions.net wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.google-analytics.com; img-src 'self' data: blob: https:; frame-src https://*.firebaseapp.com https://accounts.google.com https://auth.writto.knotwith.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self';"
 
 # ============ Cache Headers ============
 
