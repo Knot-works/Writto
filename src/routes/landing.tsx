@@ -267,7 +267,7 @@ export default function LandingPage() {
                 AIを活用した英語ライティング学習サービス
               </p>
               <a
-                href="https://twitter.com/intent/tweet?text=%23Writto%20%23英語学習%0Ahttps://writto.knotwith.com"
+                href="https://twitter.com/intent/tweet?text=%0A%0A%23Writto%20%23英語学習%0Ahttps://writto.knotwith.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
