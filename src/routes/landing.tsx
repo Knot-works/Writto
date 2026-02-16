@@ -263,9 +263,26 @@ export default function LandingPage() {
               <div className="flex items-center gap-2 mb-4">
                 <img src="/logo.png" alt="Writto" className="h-6 w-auto" />
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                 AIを活用した英語ライティング学習サービス
               </p>
+              <a
+                href="https://twitter.com/intent/tweet?text=%23Writto%20%23英語学習%0Ahttps://writto.knotwith.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+              >
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/50 group-hover:bg-muted transition-colors">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="w-4 h-4 fill-current"
+                    aria-hidden="true"
+                  >
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                </span>
+                <span className="group-hover:underline">Xでシェア</span>
+              </a>
             </div>
 
             {/* Service Links */}
