@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { RootLayout } from "@/components/root-layout";
 import { AppLayout } from "@/components/layout/app-layout";
+import { ChunkErrorBoundary } from "@/components/chunk-error-boundary";
 import "./index.css";
 
 // Page loading fallback
@@ -47,6 +48,7 @@ function LazyPage({ Component }: { Component: React.LazyExoticComponent<React.Co
 const router = createBrowserRouter([
   {
     element: <RootLayout />,
+    errorElement: <ChunkErrorBoundary />,
     children: [
       // Public routes
       { path: "/", element: <LazyPage Component={LandingPage} /> },
