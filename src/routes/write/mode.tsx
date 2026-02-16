@@ -68,8 +68,10 @@ export default function WritingPage() {
 
   // Ref-based guards to prevent race conditions on rapid clicks
   const isGeneratingRef = useRef(false);
-  const isSubmittingRef = useRef(false);
   const rateLimitHitRef = useRef(false);
+
+  // State for submitting to trigger re-render and disable unsaved changes warning
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Calculate remaining gradings based on token budget
   const tokensRemaining = tokenUsage ? tokenUsage.tokenLimit - tokenUsage.tokensUsed : 0;
@@ -81,7 +83,7 @@ export default function WritingPage() {
     : 0;
 
   // Warn user when navigating away with unsaved content
-  const hasUnsavedContent = userAnswer.trim().length > 0 && !isSubmittingRef.current;
+  const hasUnsavedContent = userAnswer.trim().length > 0 && !isSubmitting;
   const { UnsavedChangesDialog } = useUnsavedChanges({
     hasUnsavedChanges: hasUnsavedContent,
     message: "入力中の英文が失われます。",
@@ -192,8 +194,7 @@ export default function WritingPage() {
   };
 
   const handleSubmit = () => {
-    if (!user || !profile || !userAnswer.trim() || !prompt || isSubmittingRef.current || rateLimitHitRef.current) return;
-    isSubmittingRef.current = true;
+    if (!user || !profile || !userAnswer.trim() || !prompt || isSubmitting || rateLimitHitRef.current) return;
 
     // Start grading in background (non-blocking)
     startGrading({
@@ -207,9 +208,16 @@ export default function WritingPage() {
       wordCount,
     });
 
-    // Navigate immediately - result page will show loading state
-    navigate("/write/result/pending");
+    // Set submitting state to disable unsaved changes warning, then navigate
+    setIsSubmitting(true);
   };
+
+  // Navigate after isSubmitting state change to ensure warning is disabled
+  useEffect(() => {
+    if (isSubmitting) {
+      navigate("/write/result/pending");
+    }
+  }, [isSubmitting, navigate]);
 
   return (
     <div className="flex gap-6">
