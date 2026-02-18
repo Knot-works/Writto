@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { useSEO } from "@/hooks/use-seo";
+import { WebViewGuideModal } from "@/components/webview-guide-modal";
 
 export default function LoginPage() {
   useSEO({
@@ -34,6 +35,8 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen paper-texture">
+      {/* WebView Guide Modal */}
+      <WebViewGuideModal />
       {/* Left: Branding */}
       <div className="hidden flex-1 flex-col justify-between bg-primary p-12 lg:flex">
         <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
