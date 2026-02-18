@@ -3,7 +3,6 @@ import {
   detectWebView,
   getAppDisplayName,
   getOpenInBrowserInstructions,
-  redirectLineToExternalBrowser,
   type WebViewInfo,
 } from "@/lib/webview-detect";
 import { Button } from "@/components/ui/button";
@@ -21,12 +20,6 @@ export function WebViewGuideModal({ onDismiss }: WebViewGuideModalProps) {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    // LINE: Automatically redirect to external browser
-    if (redirectLineToExternalBrowser()) {
-      // Redirect is happening, don't show modal
-      return;
-    }
-
     const info = detectWebView();
     setWebViewInfo(info);
 
@@ -64,6 +57,22 @@ export function WebViewGuideModal({ onDismiss }: WebViewGuideModalProps) {
     onDismiss?.();
   };
 
+  const handleOpenInBrowser = () => {
+    // LINE: Add openExternalBrowser param to redirect
+    if (webViewInfo?.app === "line") {
+      const url = new URL(window.location.href);
+      if (!url.searchParams.has("openExternalBrowser")) {
+        url.searchParams.set("openExternalBrowser", "1");
+        window.location.href = url.toString();
+        return;
+      }
+    }
+    // For other apps, copy URL
+    handleCopyUrl();
+  };
+
+  const isLine = webViewInfo?.app === "line";
+
   const IconComponent = {
     "dots-horizontal": MoreHorizontal,
     "dots-vertical": MoreVertical,
@@ -73,8 +82,14 @@ export function WebViewGuideModal({ onDismiss }: WebViewGuideModalProps) {
   }[instructions.icon];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={handleDismiss}
+    >
+      <div
+        className="w-full max-w-sm animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="rounded-2xl bg-card shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-br from-primary/10 to-accent/10 px-6 py-8 text-center">
@@ -82,7 +97,7 @@ export function WebViewGuideModal({ onDismiss }: WebViewGuideModalProps) {
               <ExternalLink className="h-8 w-8 text-primary" />
             </div>
             <h2 className="font-serif text-xl font-bold">
-              ブラウザで開いてください
+              {isLine ? "外部ブラウザで開きますか？" : "ブラウザで開いてください"}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
               {appName}のアプリ内ブラウザでは
@@ -91,73 +106,81 @@ export function WebViewGuideModal({ onDismiss }: WebViewGuideModalProps) {
             </p>
           </div>
 
-          {/* Instructions */}
-          <div className="px-6 py-6">
-            <div className="mb-4 flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <IconComponent className="h-4 w-4" />
-              <span>ブラウザで開く手順</span>
+          {isLine ? (
+            /* LINE: Single button to open in browser */
+            <div className="px-6 py-6">
+              <Button
+                className="w-full gap-2"
+                onClick={handleOpenInBrowser}
+              >
+                <ExternalLink className="h-4 w-4" />
+                ブラウザで開く
+              </Button>
             </div>
-
-            <ol className="space-y-3">
-              {instructions.steps.map((step, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                    {index + 1}
-                  </span>
-                  <span className="pt-0.5 text-sm leading-relaxed">{step}</span>
-                </li>
-              ))}
-            </ol>
-
-            {/* Visual hint for menu position */}
-            <div className="mt-6 rounded-lg border border-dashed border-border/60 bg-muted/30 p-4">
-              <div className="relative h-12 w-full rounded bg-muted/50">
-                {/* Simulated browser header */}
-                <div
-                  className={`absolute flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground animate-pulse ${
-                    instructions.position === "top-right"
-                      ? "right-2 top-1"
-                      : instructions.position === "bottom-right"
-                      ? "right-2 bottom-1"
-                      : "left-2 top-1"
-                  }`}
-                >
-                  <IconComponent className="h-3.5 w-3.5" />
+          ) : (
+            /* Other apps: Instructions */
+            <>
+              <div className="px-6 py-6">
+                <div className="mb-4 flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <IconComponent className="h-4 w-4" />
+                  <span>ブラウザで開く手順</span>
                 </div>
-                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-xs text-muted-foreground">
-                  ここをタップ →
+
+                <ol className="space-y-3">
+                  {instructions.steps.map((step, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                        {index + 1}
+                      </span>
+                      <span className="pt-0.5 text-sm leading-relaxed">{step}</span>
+                    </li>
+                  ))}
+                </ol>
+
+                {/* Visual hint for menu position */}
+                <div className="mt-6 rounded-lg border border-dashed border-border/60 bg-muted/30 p-4">
+                  <div className="relative h-12 w-full rounded bg-muted/50">
+                    {/* Simulated browser header */}
+                    <div
+                      className={`absolute flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground animate-pulse ${
+                        instructions.position === "top-right"
+                          ? "right-2 top-1"
+                          : instructions.position === "bottom-right"
+                          ? "right-2 bottom-1"
+                          : "left-2 top-1"
+                      }`}
+                    >
+                      <IconComponent className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-xs text-muted-foreground">
+                      ここをタップ →
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Actions */}
-          <div className="border-t border-border/60 px-6 py-4 space-y-3">
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={handleCopyUrl}
-            >
-              {copied ? (
-                <>
-                  <Check className="h-4 w-4" />
-                  コピーしました
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4" />
-                  URLをコピーして開く
-                </>
-              )}
-            </Button>
-
-            <button
-              onClick={handleDismiss}
-              className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
-            >
-              このまま続ける（一部機能が制限されます）
-            </button>
-          </div>
+              {/* Actions */}
+              <div className="border-t border-border/60 px-6 py-4">
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={handleCopyUrl}
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      コピーしました
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      URLをコピーして開く
+                    </>
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
