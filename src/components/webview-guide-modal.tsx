@@ -7,7 +7,7 @@ import {
   type WebViewInfo,
 } from "@/lib/webview-detect";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Copy, Check, MoreHorizontal, MoreVertical, Share2, Menu } from "lucide-react";
+import { ExternalLink, Copy, Check, MoreHorizontal, MoreVertical, Share2, Menu, Globe } from "lucide-react";
 import { toast } from "sonner";
 
 interface WebViewGuideModalProps {
@@ -69,6 +69,7 @@ export function WebViewGuideModal({ onDismiss }: WebViewGuideModalProps) {
     "dots-vertical": MoreVertical,
     "share": Share2,
     "menu": Menu,
+    "globe": Globe,
   }[instructions.icon];
 
   return (

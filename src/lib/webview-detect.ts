@@ -136,18 +136,18 @@ export function getAppDisplayName(app: WebViewApp): string {
  */
 export function getOpenInBrowserInstructions(app: WebViewApp): {
   steps: string[];
-  icon: "dots-vertical" | "dots-horizontal" | "share" | "menu";
+  icon: "dots-vertical" | "dots-horizontal" | "share" | "menu" | "globe";
   position: "top-right" | "bottom-right" | "top-left";
 } {
   switch (app) {
     case "instagram":
       return {
         steps: [
-          "右下の「…」をタップ",
-          "「ブラウザで開く」を選択",
+          "右上の「…」をタップ",
+          "「外部ブラウザーで開く」を選択",
         ],
         icon: "dots-horizontal",
-        position: "bottom-right",
+        position: "top-right",
       };
     case "tiktok":
       return {
@@ -163,7 +163,7 @@ export function getOpenInBrowserInstructions(app: WebViewApp): {
         steps: [
           "右上の「︙」をタップ",
           "「他のアプリで開く」を選択",
-          "Safari/Chromeを選択",
+          "ブラウザアプリを選択",
         ],
         icon: "dots-vertical",
         position: "top-right",
@@ -171,20 +171,19 @@ export function getOpenInBrowserInstructions(app: WebViewApp): {
     case "facebook":
       return {
         steps: [
-          "右下の「…」をタップ",
+          "右上の「…」をタップ",
           "「ブラウザで開く」を選択",
         ],
         icon: "dots-horizontal",
-        position: "bottom-right",
+        position: "top-right",
       };
     case "twitter":
       return {
         steps: [
-          "右上の共有アイコンをタップ",
-          "「Safariで開く」を選択",
+          "右下のブラウザアイコン(🌐)をタップ",
         ],
-        icon: "share",
-        position: "top-right",
+        icon: "globe",
+        position: "bottom-right",
       };
     case "linkedin":
       return {
@@ -207,11 +206,10 @@ export function getOpenInBrowserInstructions(app: WebViewApp): {
     case "discord":
       return {
         steps: [
-          "右上の「⋮」をタップ",
-          "「ブラウザで開く」を選択",
+          "右下のブラウザアイコンをタップ",
         ],
-        icon: "dots-vertical",
-        position: "top-right",
+        icon: "globe",
+        position: "bottom-right",
       };
     case "wechat":
       return {
