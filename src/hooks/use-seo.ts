@@ -5,6 +5,7 @@ interface SEOProps {
   description?: string;
   canonical?: string;
   noindex?: boolean;
+  structuredData?: Record<string, unknown>;
 }
 
 const BASE_TITLE = "Writto";
@@ -12,7 +13,7 @@ const BASE_URL = "https://writto.knotwith.com";
 const DEFAULT_DESCRIPTION =
   "AIがあなたに合ったお題を生成し、英作文を即座に添削。ビジネス・旅行・試験対策など、目標に合わせて実用的な英語ライティング力を身につけよう。";
 
-export function useSEO({ title, description, canonical, noindex }: SEOProps = {}) {
+export function useSEO({ title, description, canonical, noindex, structuredData }: SEOProps = {}) {
   useEffect(() => {
     // Title
     const fullTitle = title ? `${title} | ${BASE_TITLE}` : `${BASE_TITLE} - AI英語ライティング学習`;
@@ -43,11 +44,25 @@ export function useSEO({ title, description, canonical, noindex }: SEOProps = {}
       updateMetaTag("name", "robots", "index, follow");
     }
 
+    // Structured Data (JSON-LD)
+    let scriptElement: HTMLScriptElement | null = null;
+    if (structuredData) {
+      scriptElement = document.createElement("script");
+      scriptElement.type = "application/ld+json";
+      scriptElement.id = "page-structured-data";
+      scriptElement.textContent = JSON.stringify(structuredData);
+      // Remove existing one if any
+      const existing = document.getElementById("page-structured-data");
+      if (existing) existing.remove();
+      document.head.appendChild(scriptElement);
+    }
+
     // Cleanup: restore defaults on unmount
     return () => {
       document.title = `${BASE_TITLE} - AI英語ライティング学習`;
+      if (scriptElement) scriptElement.remove();
     };
-  }, [title, description, canonical, noindex]);
+  }, [title, description, canonical, noindex, structuredData]);
 }
 
 function updateMetaTag(attr: "name" | "property", key: string, content: string) {

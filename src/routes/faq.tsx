@@ -95,6 +95,20 @@ const FAQ_ITEMS: FAQItem[] = [
 
 const CATEGORIES = [...new Set(FAQ_ITEMS.map((item) => item.category))];
 
+// Generate FAQ structured data for SEO
+const FAQ_STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1"), // Strip markdown links
+    },
+  })),
+};
+
 // Render answer text with clickable links
 function renderAnswerWithLinks(text: string) {
   // Match URLs in the format [label](url) or plain https:// URLs
@@ -184,8 +198,9 @@ function FAQAccordion({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boole
 export default function FAQPage() {
   useSEO({
     title: "よくある質問",
-    description: "Writtoに関するよくある質問と回答。サービス内容、料金プラン、学習方法などについてお答えします。",
+    description: "Writtoに関するよくある質問と回答。サービス内容、料金プラン、機能、アカウントについてお答えします。",
     canonical: "/faq",
+    structuredData: FAQ_STRUCTURED_DATA,
   });
 
   const [openIndex, setOpenIndex] = useState<number | null>(null);
