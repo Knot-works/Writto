@@ -119,7 +119,7 @@ export default function LandingPage() {
             </span>
             <br />
             <span>
-              ビジネス、旅行、試験対策など、あなたの目標に合わせてAIがサポートします。
+              英検・TOEIC対策、ビジネス、旅行など、あなたの目標に合わせてAIがサポート。
             </span>
           </p>
 
