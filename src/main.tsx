@@ -32,6 +32,7 @@ const WriteModePage = lazy(() => import("@/routes/write/index"));
 const WritingPage = lazy(() => import("@/routes/write/mode"));
 const ResultPage = lazy(() => import("@/routes/write/result"));
 const VocabularyPage = lazy(() => import("@/routes/vocabulary"));
+const VocabularyQuizPage = lazy(() => import("@/routes/vocabulary/quiz"));
 const HistoryPage = lazy(() => import("@/routes/history"));
 const MistakesPage = lazy(() => import("@/routes/mistakes"));
 const SettingsPage = lazy(() => import("@/routes/settings"));
@@ -71,6 +72,7 @@ const router = createBrowserRouter([
           { path: "/write/:mode", element: <LazyPage Component={WritingPage} /> },
           { path: "/write/result/:id", element: <LazyPage Component={ResultPage} /> },
           { path: "/vocabulary", element: <LazyPage Component={VocabularyPage} /> },
+          { path: "/vocabulary/quiz", element: <LazyPage Component={VocabularyQuizPage} /> },
           { path: "/history", element: <LazyPage Component={HistoryPage} /> },
           { path: "/mistakes", element: <LazyPage Component={MistakesPage} /> },
           { path: "/settings", element: <LazyPage Component={SettingsPage} /> },
