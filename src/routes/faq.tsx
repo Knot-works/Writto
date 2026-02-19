@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, HelpCircle, PenLine, ChevronDown, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSEO } from "@/hooks/use-seo";
 
@@ -220,12 +221,15 @@ export default function FAQPage() {
             </div>
             <span className="font-serif text-lg font-medium">Writto</span>
           </Link>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/" className="gap-1.5">
-              <ArrowLeft className="h-4 w-4" />
-              トップへ戻る
-            </Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/" className="gap-1.5">
+                <ArrowLeft className="h-4 w-4" />
+                トップへ戻る
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 

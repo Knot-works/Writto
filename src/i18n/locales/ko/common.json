@@ -1,0 +1,45 @@
+{
+  "site": {
+    "name": "Writto",
+    "tagline": "AI 영어 라이팅 학습"
+  },
+  "nav": {
+    "start": "무료로 시작하기",
+    "login": "로그인",
+    "pricing": "요금",
+    "about": "Writto 소개",
+    "faq": "자주 묻는 질문",
+    "terms": "이용약관",
+    "privacy": "개인정보처리방침",
+    "top": "홈"
+  },
+  "topic": {
+    "categoryExam": "시험 대비",
+    "categoryBusiness": "비즈니스 영어",
+    "categoryDaily": "일상 영어",
+    "features": "Writto로 할 수 있는 것",
+    "samplePrompts": "연습할 수 있는 주제 예시",
+    "tips": "학습 포인트",
+    "cta": {
+      "title": "지금 바로 라이팅 연습을 시작하세요",
+      "description": "AI가 당신의 영작문을 즉시 첨삭해 드립니다. 약점을 파악하고 효율적으로 레벨업하세요.",
+      "button": "무료로 시작하기"
+    },
+    "startPractice": "Writto로 연습 시작하기"
+  },
+  "footer": {
+    "trademark": "※ 본 서비스는 각 시험 운영 기관과 관련이 없습니다.",
+    "trademarkDetails": "TOEIC® 및 TOEFL®은 ETS의 등록 상표입니다. IELTS는 British Council, IDP, Cambridge Assessment English의 공동 소유입니다.",
+    "copyright": "© {{year}} Writto. All rights reserved."
+  },
+  "landing": {
+    "hero": {
+      "badge": "AI 기반 영어 라이팅 학습",
+      "title": "영어 라이팅을",
+      "flipWords": ["즐겁게", "꾸준히", "나만의 속도로", "AI와 함께"],
+      "subtitle": "마스터하세요",
+      "description": "AI가 당신에게 맞는 주제를 생성하고 영작문을 즉시 첨삭합니다. 목표에 맞춰 실용적인 영어 라이팅 실력을 키우세요.",
+      "cta": "무료로 시작하기"
+    }
+  }
+}

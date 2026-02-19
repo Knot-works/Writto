@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Mail, PenLine, Copy, Check, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { useAuth } from "@/contexts/auth-context";
 import { useSEO } from "@/hooks/use-seo";
 
@@ -103,12 +104,15 @@ export default function ContactPage() {
             </div>
             <span className="font-serif text-lg font-medium">Writto</span>
           </Link>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/" className="gap-1.5">
-              <ArrowLeft className="h-4 w-4" />
-              トップへ戻る
-            </Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/" className="gap-1.5">
+                <ArrowLeft className="h-4 w-4" />
+                トップへ戻る
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 

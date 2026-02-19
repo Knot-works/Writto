@@ -1,11 +1,17 @@
 import { useEffect } from "react";
 
+interface HreflangEntry {
+  lang: string;
+  url: string;
+}
+
 interface SEOProps {
   title?: string;
   description?: string;
   canonical?: string;
   noindex?: boolean;
   structuredData?: Record<string, unknown>;
+  hreflang?: HreflangEntry[];
 }
 
 const BASE_TITLE = "Writto";
@@ -13,7 +19,7 @@ const BASE_URL = "https://writto.knotwith.com";
 const DEFAULT_DESCRIPTION =
   "AIがあなたに合ったお題を生成し、英作文を即座に添削。ビジネス・旅行・試験対策など、目標に合わせて実用的な英語ライティング力を身につけよう。";
 
-export function useSEO({ title, description, canonical, noindex, structuredData }: SEOProps = {}) {
+export function useSEO({ title, description, canonical, noindex, structuredData, hreflang }: SEOProps = {}) {
   useEffect(() => {
     // Title
     const fullTitle = title ? `${title} | ${BASE_TITLE}` : `${BASE_TITLE} - AI英語ライティング学習`;
@@ -57,12 +63,30 @@ export function useSEO({ title, description, canonical, noindex, structuredData 
       document.head.appendChild(scriptElement);
     }
 
+    // Hreflang tags for multilingual SEO
+    const hreflangLinks: HTMLLinkElement[] = [];
+    if (hreflang && hreflang.length > 0) {
+      // Remove existing hreflang links
+      document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((el) => el.remove());
+
+      // Add new hreflang links
+      hreflang.forEach(({ lang, url }) => {
+        const link = document.createElement("link");
+        link.rel = "alternate";
+        link.hreflang = lang;
+        link.href = url.startsWith("http") ? url : `${BASE_URL}${url}`;
+        document.head.appendChild(link);
+        hreflangLinks.push(link);
+      });
+    }
+
     // Cleanup: restore defaults on unmount
     return () => {
       document.title = `${BASE_TITLE} - AI英語ライティング学習`;
       if (scriptElement) scriptElement.remove();
+      hreflangLinks.forEach((link) => link.remove());
     };
-  }, [title, description, canonical, noindex, structuredData]);
+  }, [title, description, canonical, noindex, structuredData, hreflang]);
 }
 
 function updateMetaTag(attr: "name" | "property", key: string, content: string) {

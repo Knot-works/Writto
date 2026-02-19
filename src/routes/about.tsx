@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft, Target, Heart, Sparkles, Users } from "lucide-react";
 import { useSEO } from "@/hooks/use-seo";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -37,12 +38,15 @@ export default function AboutPage() {
           <Link to="/" className="flex items-center">
             <img src="/logo.png" alt="Writto" className="h-8 w-auto" />
           </Link>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/" className="gap-1.5">
-              <ArrowLeft className="h-4 w-4" />
-              トップへ戻る
-            </Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/" className="gap-1.5">
+                <ArrowLeft className="h-4 w-4" />
+                トップへ戻る
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 

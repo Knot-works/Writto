@@ -1,0 +1,45 @@
+{
+  "site": {
+    "name": "Writto",
+    "tagline": "AI英語ライティング学習"
+  },
+  "nav": {
+    "start": "無料ではじめる",
+    "login": "ログイン",
+    "pricing": "料金",
+    "about": "Writtoについて",
+    "faq": "よくある質問",
+    "terms": "利用規約",
+    "privacy": "プライバシー",
+    "top": "トップ"
+  },
+  "topic": {
+    "categoryExam": "試験対策",
+    "categoryBusiness": "ビジネス英語",
+    "categoryDaily": "日常英語",
+    "features": "Writtoでできること",
+    "samplePrompts": "練習できるお題の例",
+    "tips": "学習のポイント",
+    "cta": {
+      "title": "今すぐライティング練習をはじめよう",
+      "description": "AIがあなたの英作文を即座に添削。弱点を把握して効率的にレベルアップできます。",
+      "button": "無料ではじめる"
+    },
+    "startPractice": "Writtoで練習をはじめる"
+  },
+  "footer": {
+    "trademark": "※ 本サービスは各試験の運営団体とは一切関係ありません。",
+    "trademarkDetails": "TOEIC®およびTOEFL®はETSの登録商標です。英検®は公益財団法人日本英語検定協会の登録商標です。IELTSはBritish Council、IDP、Cambridge Assessment Englishの共同所有です。",
+    "copyright": "© {{year}} Writto. All rights reserved."
+  },
+  "landing": {
+    "hero": {
+      "badge": "AI搭載の英語ライティング学習",
+      "title": "英語ライティングを",
+      "flipWords": ["楽しく", "着実に", "あなたのペースで", "AIと一緒に"],
+      "subtitle": "身につけよう",
+      "description": "AIがあなたに合ったお題を生成し、英作文を即座に添削。目標に合わせて実用的な英語ライティング力を身につけよう。",
+      "cta": "無料ではじめる"
+    }
+  }
+}

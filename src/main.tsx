@@ -27,6 +27,8 @@ const FAQPage = lazy(() => import("@/routes/faq"));
 const AboutPage = lazy(() => import("@/routes/about"));
 const NotFoundPage = lazy(() => import("@/routes/not-found"));
 const TopicPage = lazy(() => import("@/routes/topics/topic"));
+const TopicPageKo = lazy(() => import("@/routes/ko/topics/topic"));
+const LandingPageKo = lazy(() => import("@/routes/ko/landing"));
 const OnboardingPage = lazy(() => import("@/routes/onboarding"));
 const DashboardPage = lazy(() => import("@/routes/dashboard"));
 const WriteModePage = lazy(() => import("@/routes/write/index"));
@@ -64,6 +66,10 @@ const router = createBrowserRouter([
       { path: "/faq", element: <LazyPage Component={FAQPage} /> },
       { path: "/about", element: <LazyPage Component={AboutPage} /> },
       { path: "/topics/:slug", element: <LazyPage Component={TopicPage} /> },
+
+      // Korean routes
+      { path: "/ko", element: <LazyPage Component={LandingPageKo} /> },
+      { path: "/ko/topics/:slug", element: <LazyPage Component={TopicPageKo} /> },
 
       // Authenticated routes
       {

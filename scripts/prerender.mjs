@@ -7,8 +7,8 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distDir = path.resolve(__dirname, "../dist");
 
-// Topic slugs for SEO pages
-const topicSlugs = [
+// Japanese topic slugs for SEO pages
+const topicSlugsJa = [
   "eiken-grade1",
   "eiken-grade-pre1",
   "eiken-grade2",
@@ -21,6 +21,16 @@ const topicSlugs = [
   "english-diary",
 ];
 
+// Korean topic slugs for SEO pages
+const topicSlugsKo = [
+  "toeic-writing",
+  "toefl-writing",
+  "ielts-writing",
+  "business-email",
+  "english-diary",
+  "toeic-sw",
+];
+
 // Routes to prerender
 const routes = [
   "/",
@@ -31,8 +41,12 @@ const routes = [
   "/privacy",
   "/contact",
   "/legal/commercial",
-  // Topic pages for SEO
-  ...topicSlugs.map((slug) => `/topics/${slug}`),
+  // Japanese topic pages for SEO
+  ...topicSlugsJa.map((slug) => `/topics/${slug}`),
+  // Korean landing page
+  "/ko",
+  // Korean topic pages for SEO
+  ...topicSlugsKo.map((slug) => `/ko/topics/${slug}`),
 ];
 
 async function prerender() {

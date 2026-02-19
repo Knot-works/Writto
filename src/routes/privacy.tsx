@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft, Shield, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { useSEO } from "@/hooks/use-seo";
 
 export default function PrivacyPage() {
@@ -21,12 +22,15 @@ export default function PrivacyPage() {
             </div>
             <span className="font-serif text-lg font-medium">Writto</span>
           </Link>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/" className="gap-1.5">
-              <ArrowLeft className="h-4 w-4" />
-              トップへ戻る
-            </Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/" className="gap-1.5">
+                <ArrowLeft className="h-4 w-4" />
+                トップへ戻る
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 
