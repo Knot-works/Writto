@@ -26,6 +26,7 @@ const ContactPage = lazy(() => import("@/routes/contact"));
 const FAQPage = lazy(() => import("@/routes/faq"));
 const AboutPage = lazy(() => import("@/routes/about"));
 const NotFoundPage = lazy(() => import("@/routes/not-found"));
+const TopicPage = lazy(() => import("@/routes/topics/topic"));
 const OnboardingPage = lazy(() => import("@/routes/onboarding"));
 const DashboardPage = lazy(() => import("@/routes/dashboard"));
 const WriteModePage = lazy(() => import("@/routes/write/index"));
@@ -62,6 +63,7 @@ const router = createBrowserRouter([
       { path: "/contact", element: <LazyPage Component={ContactPage} /> },
       { path: "/faq", element: <LazyPage Component={FAQPage} /> },
       { path: "/about", element: <LazyPage Component={AboutPage} /> },
+      { path: "/topics/:slug", element: <LazyPage Component={TopicPage} /> },
 
       // Authenticated routes
       {

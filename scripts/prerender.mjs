@@ -7,6 +7,20 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distDir = path.resolve(__dirname, "../dist");
 
+// Topic slugs for SEO pages
+const topicSlugs = [
+  "eiken-grade1",
+  "eiken-grade-pre1",
+  "eiken-grade2",
+  "eiken-grade-pre2",
+  "eiken-grade3",
+  "toeic-writing",
+  "toefl-writing",
+  "ielts-writing",
+  "business-email",
+  "english-diary",
+];
+
 // Routes to prerender
 const routes = [
   "/",
@@ -17,6 +31,8 @@ const routes = [
   "/privacy",
   "/contact",
   "/legal/commercial",
+  // Topic pages for SEO
+  ...topicSlugs.map((slug) => `/topics/${slug}`),
 ];
 
 async function prerender() {
