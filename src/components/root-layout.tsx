@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { AuthProvider } from "@/contexts/auth-context";
 import { TokenProvider } from "@/contexts/token-context";
@@ -7,6 +8,14 @@ import { ScrollToTop } from "@/components/scroll-to-top";
 import { Toaster } from "@/components/ui/sonner";
 
 export function RootLayout() {
+  // Signal prerender that rendering is complete
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      document.dispatchEvent(new Event("render-complete"));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <AuthProvider>
       <TokenProvider>
