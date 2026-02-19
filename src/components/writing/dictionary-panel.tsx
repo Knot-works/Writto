@@ -22,9 +22,11 @@ interface DictionaryPanelProps {
   onClose?: () => void;
   /** External search trigger - when this changes, search will be triggered */
   searchTrigger?: { word: string; timestamp: number };
+  /** Custom empty state message (default shows writing context message) */
+  emptyMessage?: string;
 }
 
-export function DictionaryPanel({ onClose, searchTrigger }: DictionaryPanelProps) {
+export function DictionaryPanel({ onClose, searchTrigger, emptyMessage }: DictionaryPanelProps) {
   const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<LookupResult[]>([]);
@@ -224,14 +226,9 @@ export function DictionaryPanel({ onClose, searchTrigger }: DictionaryPanelProps
         {!searching && results.length === 0 && (
           <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
             <Search className="h-8 w-8 text-muted-foreground/30" />
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">
-                ライティング中に使いたい
-              </p>
-              <p className="text-sm text-muted-foreground">
-                単語や表現を検索できます
-              </p>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              {emptyMessage || "ライティング中に使いたい\n単語や表現を検索できます"}
+            </p>
           </div>
         )}
 
