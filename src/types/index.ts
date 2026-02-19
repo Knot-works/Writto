@@ -1,5 +1,5 @@
 export type Goal = "business" | "travel" | "study_abroad" | "daily" | "exam";
-export type Level = "beginner" | "intermediate" | "advanced";
+export type Level = "beginner" | "intermediate" | "advanced" | "native";
 export type WritingMode = "goal" | "hobby" | "expression" | "custom" | "business" | "daily" | "social";
 export type VocabType = "word" | "expression";
 export type Plan = "free" | "pro";
@@ -277,10 +277,38 @@ export interface VocabEntry {
   meaning: string;
   example: string;
   source?: string;
+  deckId?: string;        // Associated deck ID (null = default "My Vocabulary")
   reviewCount: number;
   lastReviewedAt?: Date;
   createdAt: Date;
+  // SRS (Spaced Repetition System) fields
+  easeFactor?: number;    // Difficulty factor (default 2.5, min 1.3)
+  interval?: number;      // Days until next review (default 1)
+  nextReviewAt?: Date;    // Next scheduled review date
 }
+
+// Vocabulary Deck
+export interface VocabDeck {
+  id: string;
+  name: string;
+  description?: string;
+  theme?: string;         // Theme used for AI generation
+  category?: string;      // Category (business, it, etc.)
+  level?: Level;          // Difficulty level
+  vocabCount: number;     // Cached vocabulary count
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// SRS difficulty rating
+export type SRSRating = "again" | "hard" | "good" | "easy";
+
+export const SRS_RATING_LABELS: Record<SRSRating, string> = {
+  again: "もう一度",
+  hard: "難しい",
+  good: "正解",
+  easy: "簡単",
+};
 
 export interface UserStats {
   totalWritings: number;
@@ -308,12 +336,14 @@ export const LEVEL_LABELS: Record<Level, string> = {
   beginner: "初級",
   intermediate: "中級",
   advanced: "上級",
+  native: "ネイティブ",
 };
 
 export const LEVEL_DESCRIPTIONS: Record<Level, string> = {
   beginner: "英検4〜3級 / TOEIC 〜400 / 中学英語レベル",
   intermediate: "英検準2〜2級 / TOEIC 400〜700 / 高校英語レベル",
   advanced: "英検準1級〜 / TOEIC 700〜 / ビジネスレベル",
+  native: "英検1級〜 / TOEIC 900〜 / ネイティブレベル",
 };
 
 export const MODE_LABELS: Record<WritingMode, string> = {

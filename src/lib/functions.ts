@@ -347,3 +347,39 @@ export async function callSubmitFeedback(
   const result = await fn(request);
   return result.data;
 }
+
+// ============ Generate Vocabulary Deck ============
+
+export type VocabGenerationType = "word" | "expression" | "both";
+
+export interface GenerateVocabularyRequest {
+  theme: string;
+  category?: string;
+  vocabType: VocabGenerationType;
+  count: number;
+  level: "beginner" | "intermediate" | "advanced" | "native";
+}
+
+export interface GeneratedVocabItem {
+  term: string;
+  meaning: string;
+  example: string;
+  type: "word" | "expression";
+}
+
+export interface GenerateVocabularyResponse {
+  vocabulary: GeneratedVocabItem[];
+  tokensUsed: number;
+}
+
+export async function callGenerateVocabulary(
+  request: GenerateVocabularyRequest
+): Promise<GenerateVocabularyResponse> {
+  const fn = httpsCallable<GenerateVocabularyRequest, GenerateVocabularyResponse>(
+    functions,
+    "generateVocabulary"
+  );
+
+  const result = await fn(request);
+  return result.data;
+}
