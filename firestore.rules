@@ -30,6 +30,11 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
       }
 
+      // Vocabulary Decks
+      match /decks/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
       // Meta (stats etc)
       match /meta/{docId} {
         allow read, write: if isOwner(userId);
