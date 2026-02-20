@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { callAskFollowUp, isRateLimitError } from "@/lib/functions";
 import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 import { Button } from "@/components/ui/button";
@@ -23,10 +24,11 @@ interface ChatPanelProps {
     feedback: WritingFeedback;
   };
   onClose?: () => void;
-  lang?: "ja" | "en";
+  lang?: "ja" | "en" | "ko";
 }
 
 export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelProps) {
+  const { t } = useTranslation("app");
   const { open: openUpgradeModal } = useUpgradeModal();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -90,7 +92,7 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
 
       // Build the question with selection context if present
       const questionWithContext = selectedTextContext
-        ? `以下の表現について質問です：「${selectedTextContext}」\n\n${trimmedInput}`
+        ? `${t("chat.questionAboutSelection", { text: selectedTextContext })}\n\n${trimmedInput}`
         : trimmedInput;
 
       const response = await callAskFollowUp({
@@ -132,10 +134,10 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-amber-900">
-                    無料枠を使い切りました
+                    {t("chat.rateLimitReached")}
                   </p>
                   <p className="mt-1 text-sm text-amber-700/80">
-                    Proプランで学習を続けましょう
+                    {t("chat.rateLimitUpgrade")}
                   </p>
                 </div>
               </div>
@@ -145,7 +147,7 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
         );
         openUpgradeModal();
       } else {
-        toast.error("回答の取得に失敗しました");
+        toast.error(t("chat.sendError"));
       }
       // Remove the user message on error
       setMessages((prev) => prev.slice(0, -1));
@@ -196,7 +198,7 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
       <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
         <div className="flex items-center gap-2">
           <MessageCircle className="h-4 w-4 text-primary" />
-          <span className="font-serif text-sm font-medium">質問する</span>
+          <span className="font-serif text-sm font-medium">{t("chat.title")}</span>
         </div>
         {onClose && (
           <Button
@@ -219,14 +221,10 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium text-foreground">
-                添削について質問しよう
+                {t("chat.emptyTitle")}
               </p>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                「なぜこの表現じゃダメなの？」
-                <br />
-                「他の言い方はある？」
-                <br />
-                など、気軽に聞いてみてください
+              <p className="text-xs leading-relaxed text-muted-foreground whitespace-pre-line">
+                {t("chat.emptyDescription")}
               </p>
             </div>
           </div>
@@ -288,7 +286,7 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
                 <div className="flex items-center gap-2 rounded-2xl bg-muted/60 px-4 py-3">
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">
-                    考え中...
+                    {t("chat.thinking")}
                   </span>
                 </div>
               </div>
@@ -303,7 +301,7 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
         <div className="border-t border-border/40 bg-primary/5 px-4 py-2">
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs text-primary">
-              「{pendingContext.improvement.original}」について質問中
+              {t("chat.askingAbout", { text: pendingContext.improvement.original })}
             </p>
             <Button
               variant="ghost"
@@ -325,7 +323,7 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
         <div className="border-t border-border/40 bg-sky-500/5 px-4 py-2">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-medium text-sky-600 mb-1">選択中のテキスト</p>
+              <p className="text-[10px] font-medium text-sky-600 mb-1">{t("chat.selectedText")}</p>
               <p className="text-xs text-foreground/80 line-clamp-2 break-all">
                 {selectedTextContext}
               </p>
@@ -349,7 +347,7 @@ export function ChatPanel({ writingContext, onClose, lang = "ja" }: ChatPanelPro
         <div className="flex gap-2">
           <Textarea
             ref={textareaRef}
-            placeholder="質問を入力..."
+            placeholder={t("chat.placeholder")}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {

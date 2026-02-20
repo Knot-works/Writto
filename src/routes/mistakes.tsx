@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/auth-context";
 import { getMistakes, deleteMistake } from "@/lib/firestore";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,26 +15,9 @@ import {
   PenLine,
   BarChart3,
 } from "lucide-react";
-import {
-  type MistakeEntry,
-  type AnalysisPeriod,
-  SUBTYPE_LABELS,
-} from "@/types";
+import type { MistakeEntry, AnalysisPeriod } from "@/types";
 
-const PERIOD_LABELS: Record<AnalysisPeriod, string> = {
-  "7d": "7日間",
-  "30d": "30日間",
-  "3m": "3ヶ月",
-  all: "全期間",
-};
-
-const TYPE_LABELS = {
-  all: "すべて",
-  grammar: "文法",
-  vocabulary: "語彙",
-  structure: "構成",
-  content: "内容",
-};
+const PERIOD_KEYS: AnalysisPeriod[] = ["7d", "30d", "3m", "all"];
 
 const TYPE_COLORS = {
   grammar: "bg-rose-500/10 text-rose-600 border-rose-500/20",
@@ -43,11 +27,13 @@ const TYPE_COLORS = {
 };
 
 export default function MistakesPage() {
+  const { t, i18n } = useTranslation("app");
   const { user } = useAuth();
   const [mistakes, setMistakes] = useState<MistakeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<AnalysisPeriod>("30d");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const locale = i18n.language === "ko" ? "ko-KR" : "ja-JP";
 
   useEffect(() => {
     if (!user) return;
@@ -72,10 +58,10 @@ export default function MistakesPage() {
     try {
       await deleteMistake(user.uid, mistakeId);
       setMistakes((prev) => prev.filter((m) => m.id !== mistakeId));
-      toast.success("克服しました！");
+      toast.success(t("mistakes.toast.overcomeSuccess"));
     } catch (err) {
       console.error("Failed to delete mistake:", err);
-      toast.error("削除に失敗しました");
+      toast.error(t("mistakes.toast.deleteFailed"));
     }
   };
 
@@ -118,30 +104,30 @@ export default function MistakesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="font-serif text-3xl">間違いノート</h1>
+          <h1 className="font-serif text-3xl">{t("mistakes.title")}</h1>
           <p className="text-muted-foreground">
-            過去の添削から抽出された改善ポイント
+            {t("mistakes.subtitle")}
           </p>
         </div>
         <Button asChild>
           <Link to="/write" className="gap-2">
             <PenLine className="h-4 w-4" />
-            練習する
+            {t("mistakes.actions.practice")}
           </Link>
         </Button>
       </div>
 
       {/* Period Filter */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm text-muted-foreground">期間:</span>
-        {(Object.keys(PERIOD_LABELS) as AnalysisPeriod[]).map((p) => (
+        <span className="text-sm text-muted-foreground">{t("mistakes.periodFilter.label")}</span>
+        {PERIOD_KEYS.map((p) => (
           <Button
             key={p}
             variant={period === p ? "default" : "outline"}
             size="sm"
             onClick={() => setPeriod(p)}
           >
-            {PERIOD_LABELS[p]}
+            {t(`mistakes.periodFilter.${p}`)}
           </Button>
         ))}
       </div>
@@ -167,7 +153,7 @@ export default function MistakesPage() {
                     variant="outline"
                     className={TYPE_COLORS[type]}
                   >
-                    {TYPE_LABELS[type]}
+                    {t(`mistakes.types.${type}`)}
                   </Badge>
                   <span className="font-serif text-xl font-bold">
                     {stats[type]}
@@ -203,19 +189,19 @@ export default function MistakesPage() {
         >
           <TabsList>
             <TabsTrigger value="all">
-              すべて ({stats.total})
+              {t("mistakes.tabs.all", { count: stats.total })}
             </TabsTrigger>
             <TabsTrigger value="grammar">
-              文法 ({stats.grammar})
+              {t("mistakes.tabs.grammar", { count: stats.grammar })}
             </TabsTrigger>
             <TabsTrigger value="vocabulary">
-              語彙 ({stats.vocabulary})
+              {t("mistakes.tabs.vocabulary", { count: stats.vocabulary })}
             </TabsTrigger>
             <TabsTrigger value="structure">
-              構成 ({stats.structure})
+              {t("mistakes.tabs.structure", { count: stats.structure })}
             </TabsTrigger>
             <TabsTrigger value="content">
-              内容 ({stats.content})
+              {t("mistakes.tabs.content", { count: stats.content })}
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -230,20 +216,20 @@ export default function MistakesPage() {
             <div className="text-center">
               <p className="font-medium">
                 {mistakes.length === 0
-                  ? "まだ間違いが記録されていません"
-                  : "該当する間違いがありません"}
+                  ? t("mistakes.empty.title")
+                  : t("mistakes.emptyFiltered")}
               </p>
               <p className="text-sm text-muted-foreground">
                 {mistakes.length === 0
-                  ? "ライティングを添削すると、改善ポイントがここに蓄積されます"
-                  : "フィルターを変更してみてください"}
+                  ? t("mistakes.empty.description")
+                  : t("mistakes.emptyFilteredDescription")}
               </p>
             </div>
             {mistakes.length === 0 && (
               <Button asChild>
                 <Link to="/write" className="gap-2">
                   <PenLine className="h-4 w-4" />
-                  最初の練習をする
+                  {t("mistakes.startPractice")}
                 </Link>
               </Button>
             )}
@@ -261,11 +247,11 @@ export default function MistakesPage() {
                       variant="outline"
                       className={TYPE_COLORS[mistake.type]}
                     >
-                      {TYPE_LABELS[mistake.type]}
+                      {t(`mistakes.types.${mistake.type}`)}
                     </Badge>
                     {mistake.subType && (
                       <span className="text-xs text-muted-foreground">
-                        {SUBTYPE_LABELS[mistake.subType] || mistake.subType}
+                        {t(`types.subtypes.${mistake.subType}`, { defaultValue: mistake.subType })}
                       </span>
                     )}
                   </div>
@@ -276,7 +262,7 @@ export default function MistakesPage() {
                     onClick={() => handleDelete(mistake.id)}
                   >
                     <Check className="h-3 w-3" />
-                    克服した
+                    {t("mistakes.actions.overcome")}
                   </Button>
                 </div>
 
@@ -303,7 +289,7 @@ export default function MistakesPage() {
                     {mistake.sourcePrompt}
                   </span>
                   <span className="shrink-0">
-                    {mistake.createdAt.toLocaleDateString("ja-JP")}
+                    {mistake.createdAt.toLocaleDateString(locale)}
                   </span>
                 </div>
               </CardContent>
@@ -320,21 +306,21 @@ export default function MistakesPage() {
               <BarChart3 className="h-5 w-5 text-primary" />
               <div className="flex-1">
                 <p className="text-sm font-medium">
-                  {PERIOD_LABELS[period]}の傾向
+                  {t("mistakes.summary.title", { period: t(`mistakes.periodFilter.${period}`) })}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {stats.grammar > stats.vocabulary &&
                   stats.grammar > stats.structure &&
                   stats.grammar > stats.content
-                    ? "文法の間違いが多めです。冠詞や時制に注意しましょう。"
+                    ? t("mistakes.summary.grammarFocus")
                     : stats.vocabulary > stats.structure &&
                       stats.vocabulary > stats.content
-                    ? "語彙の選択に課題があります。類義語の使い分けを意識しましょう。"
+                    ? t("mistakes.summary.vocabularyFocus")
                     : stats.structure > stats.content
-                    ? "文章構成に改善の余地があります。接続詞の使い方を練習しましょう。"
+                    ? t("mistakes.summary.structureFocus")
                     : stats.content > 0
-                    ? "内容面での改善ポイントがあります。具体例を増やしましょう。"
-                    : "良いペースで学習が進んでいます！"}
+                    ? t("mistakes.summary.contentFocus")
+                    : t("mistakes.summary.goodProgress")}
                 </p>
               </div>
             </div>

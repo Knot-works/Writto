@@ -3,14 +3,18 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
 import jaCommon from "./locales/ja/common.json";
+import jaApp from "./locales/ja/app.json";
 import koCommon from "./locales/ko/common.json";
+import koApp from "./locales/ko/app.json";
 
 const resources = {
   ja: {
     common: jaCommon,
+    app: jaApp,
   },
   ko: {
     common: koCommon,
+    app: koApp,
   },
 };
 
@@ -20,8 +24,8 @@ void i18n
   .init({
     resources,
     fallbackLng: "ja",
-    defaultNS: "common",
-    ns: ["common"],
+    defaultNS: "app",
+    ns: ["common", "app"],
     detection: {
       order: ["path", "navigator"],
       lookupFromPathIndex: 0,

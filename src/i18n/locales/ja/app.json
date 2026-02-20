@@ -1,0 +1,787 @@
+{
+  "navigation": {
+    "home": "ホーム",
+    "writing": "ライティング",
+    "vocabulary": "単語帳",
+    "mistakes": "間違いノート",
+    "history": "履歴",
+    "settings": "設定",
+    "logout": "ログアウト",
+    "upgrade": "アップグレード",
+    "pro": "Pro"
+  },
+  "dashboard": {
+    "welcome": "おかえりなさい、{{name}}さん",
+    "profileBanner": {
+      "title": "プロフィールをもっと教えてください",
+      "description": "職業や学校の情報を追加すると、より身近なお題が出せます"
+    },
+    "dailyPrompt": {
+      "title": "今日のお題",
+      "recommendedWords": "推奨: {{count}}語",
+      "loading": "お題を読み込み中...",
+      "error": "お題を取得できませんでした。ライティング画面から始めてみましょう。"
+    },
+    "recentLearning": {
+      "title": "最近の学習",
+      "viewAll": "すべて見る",
+      "empty": "まだ学習記録がありません",
+      "emptyDescription": "最初のお題に挑戦してみましょう",
+      "startWriting": "ライティングを始める"
+    },
+    "actions": {
+      "viewResult": "結果",
+      "retry": "再挑戦",
+      "startSameMode": "同じモードで練習",
+      "nextChallenge": "次のお題に挑戦"
+    },
+    "modes": {
+      "selectAnother": "別のモードを選ぶ"
+    },
+    "continuePrompt": "続けて練習すると効果的です",
+    "firstWritingTooltip": "先ほどの結果を詳しく見てみましょう！"
+  },
+  "settings": {
+    "title": "設定",
+    "subtitle": "学習プロフィールと環境設定",
+    "account": "アカウント",
+    "profile": "プロフィール",
+    "tokenUsage": {
+      "title": "トークン使用量",
+      "monthlyUsage": "今月の使用量",
+      "freeQuota": "無料枠（リセットなし）",
+      "nextReset": "次回リセット:",
+      "used": "{{tokens}} 使用",
+      "limit": "{{tokens}} 上限"
+    },
+    "freePlanNotice": "無料枠を使い切ると、Proプランへのアップグレードが必要です。",
+    "userType": {
+      "title": "あなたは？",
+      "student": "学生",
+      "working": "社会人"
+    },
+    "school": {
+      "type": "学校",
+      "grade": "学年",
+      "club": "部活・サークル",
+      "clubPlaceholder": "例: サッカー部",
+      "major": "専攻・学部",
+      "majorPlaceholder": "例: 情報工学"
+    },
+    "work": {
+      "occupation": "職種",
+      "personalContext": "自由メモ（任意）",
+      "personalContextPlaceholder": "例: 来月から海外赴任予定"
+    },
+    "learning": {
+      "goal": "学習目標",
+      "level": "レベル",
+      "interests": "興味・趣味",
+      "customInterests": "好きなもの・詳しいこと（最大5個）",
+      "customInterestsPlaceholder": "キーワードを入力 → Enterで追加",
+      "customInterestsHint": "お題に反映したいキーワードを追加できます"
+    },
+    "language": {
+      "title": "言語設定",
+      "uiLanguage": "表示言語",
+      "uiLanguageDescription": "アプリのメニューや画面表示に使用する言語",
+      "explanationLanguage": "解説言語",
+      "explanationLanguageDescription": "添削結果の解説で使用する言語を選択します"
+    },
+    "save": {
+      "button": "設定を保存",
+      "saving": "保存中...",
+      "saved": "保存しました"
+    },
+    "danger": {
+      "title": "危険な操作",
+      "deleteAccount": "アカウントを削除",
+      "deleteAccountDescription": "アカウントを削除すると、すべてのデータ（学習履歴、単語帳、プロフィール）が完全に削除され、復元できなくなります。",
+      "deleteConfirmTitle": "アカウントを削除しますか？",
+      "deleteConfirmDescription": "この操作は取り消せません。以下のデータがすべて削除されます：",
+      "deleteItems": {
+        "history": "ライティング履歴",
+        "vocabulary": "単語帳のすべてのエントリ",
+        "profile": "プロフィール情報",
+        "tokens": "トークン使用量の記録"
+      },
+      "deleteInputLabel": "確認のため、下のフィールドに",
+      "deleteInputHint": "と入力してください。",
+      "deleteInputPlaceholder": "DELETEと入力",
+      "deleteButton": "完全に削除する",
+      "deleting": "削除中...",
+      "deleteFailed": "アカウントの削除に失敗しました。再度お試しください。",
+      "cancel": "キャンセル"
+    },
+    "subscription": {
+      "title": "サブスクリプション管理",
+      "yearly": "年額プラン",
+      "monthly": "月額プラン",
+      "cancelScheduled": "解約予約済み",
+      "cancelNote": "{{date}}まで引き続きご利用いただけます。その後、自動的に無料プランに移行します。",
+      "nextRenewal": "次回更新日:",
+      "manage": "サブスクリプションを管理",
+      "manageLink": "支払い方法の変更・プラン解約はこちらから",
+      "loading": "サブスクリプション情報を読み込み中...",
+      "portalError": "サブスクリプション管理ページを開けませんでした。"
+    },
+    "tokenUsage": {
+      "title": "トークン使用量",
+      "monthlyUsage": "今月の使用量",
+      "freeQuota": "無料枠（リセットなし）",
+      "nextReset": "次回リセット:",
+      "used": "{{tokens}} 使用",
+      "limit": "{{tokens}} 上限",
+      "fetchError": "使用量を取得できませんでした"
+    }
+  },
+  "vocabulary": {
+    "title": "単語帳",
+    "subtitle": "学習した単語や表現をまとめて管理",
+    "items": "件",
+    "actions": {
+      "search": "辞書検索",
+      "generate": "AI生成",
+      "quiz": "クイズ",
+      "add": "追加"
+    },
+    "deckSelector": {
+      "myVocab": "Myカテゴリ",
+      "aiDecks": "AIで生成されたデッキ"
+    },
+    "freePlanBanner": {
+      "limit": "無料プランでは{{limit}}件まで登録できます（残り{{remaining}}件）",
+      "reachedLimit": "無料プランの上限（{{limit}}件）に達しました",
+      "upgradeLink": "Proで無制限に"
+    },
+    "stats": {
+      "words": "単語",
+      "expressions": "表現",
+      "myVocab": "My単語帳",
+      "inDeck": "デッキ内"
+    },
+    "search": {
+      "placeholder": "単語や表現を検索..."
+    },
+    "tabs": {
+      "all": "すべて ({{count}})",
+      "words": "単語 ({{count}})",
+      "expressions": "表現 ({{count}})"
+    },
+    "empty": {
+      "title": "まだ単語・表現が登録されていません",
+      "description": "単語を追加してみましょう",
+      "addFirst": "最初の単語を追加"
+    },
+    "emptySearch": {
+      "title": "該当する単語・表現が見つかりません",
+      "description": "検索条件を変更してください"
+    },
+    "emptyDeck": "このデッキは空です",
+    "source": "出典",
+    "dictionaryEmptyMessage": "単語や表現を検索して単語帳に追加できます",
+    "addDialog": {
+      "title": "単語・表現を追加",
+      "typeWord": "単語",
+      "typeExpression": "表現",
+      "meaning": "意味・解説",
+      "meaningPlaceholder": "日本語で意味や使い方を記入",
+      "example": "例文（任意）",
+      "examplePlaceholder": "例文を入力",
+      "cancel": "キャンセル",
+      "submit": "登録する"
+    },
+    "badges": {
+      "word": "単語",
+      "expression": "表現"
+    }
+  },
+  "history": {
+    "title": "学習履歴",
+    "subtitle": "過去の英作文と添削結果を振り返り",
+    "freePlanBanner": {
+      "limit": "無料プランでは過去{{days}}日間の履歴のみ表示されます",
+      "hiddenCount": "（{{count}}件の古い履歴は非表示）",
+      "upgradeLink": "Proで無制限に"
+    },
+    "filters": {
+      "all": "すべて",
+      "goal": "目標特化",
+      "hobby": "趣味",
+      "expression": "表現",
+      "custom": "カスタム"
+    },
+    "empty": {
+      "title": "まだ学習記録がありません",
+      "description": "ライティングに挑戦して記録を残しましょう",
+      "startWriting": "ライティングを始める"
+    },
+    "emptyFiltered": "「{{mode}}」モードの記録がありません",
+    "group": {
+      "monthYear": "{{year}}年{{month}}月",
+      "count": "{{count}}件"
+    },
+    "wordCount": "{{count}}語",
+    "actions": {
+      "viewResult": "結果",
+      "retry": "再挑戦"
+    }
+  },
+  "mistakes": {
+    "title": "間違いノート",
+    "subtitle": "過去の添削から抽出された改善ポイント",
+    "periodFilter": {
+      "label": "期間:",
+      "7d": "7日間",
+      "30d": "30日間",
+      "3m": "3ヶ月",
+      "all": "全期間"
+    },
+    "types": {
+      "all": "すべて",
+      "grammar": "文法",
+      "vocabulary": "語彙",
+      "structure": "構成",
+      "content": "内容"
+    },
+    "tabs": {
+      "all": "すべて ({{count}})",
+      "grammar": "文法 ({{count}})",
+      "vocabulary": "語彙 ({{count}})",
+      "structure": "構成 ({{count}})",
+      "content": "内容 ({{count}})"
+    },
+    "actions": {
+      "overcome": "克服した",
+      "practice": "練習する"
+    },
+    "empty": {
+      "title": "まだ間違いが記録されていません",
+      "description": "ライティングを添削すると、改善ポイントがここに蓄積されます"
+    },
+    "emptyFiltered": "該当する間違いがありません",
+    "emptyFilteredDescription": "フィルターを変更してみてください",
+    "startPractice": "最初の練習をする",
+    "toast": {
+      "overcomeSuccess": "克服しました!",
+      "deleteFailed": "削除に失敗しました"
+    },
+    "summary": {
+      "title": "{{period}}の傾向",
+      "grammarFocus": "文法の間違いが多めです。冠詞や時制に注意しましょう。",
+      "vocabularyFocus": "語彙の選択に課題があります。類義語の使い分けを意識しましょう。",
+      "structureFocus": "文章構成に改善の余地があります。接続詞の使い方を練習しましょう。",
+      "contentFocus": "内容面での改善ポイントがあります。具体例を増やしましょう。",
+      "goodProgress": "良いペースで学習が進んでいます！"
+    }
+  },
+  "writing": {
+    "modeSelection": {
+      "title": "ライティングモード",
+      "subtitle": "練習スタイルを選んで英作文を始めましょう",
+      "categories": {
+        "personalized": "パーソナライズ",
+        "personalizedDescription": "あなたに合わせたお題",
+        "topicBased": "トピック別",
+        "topicBasedDescription": "シーン・場面で選ぶ",
+        "custom": "カスタム",
+        "customDescription": "自分で決める"
+      },
+      "modes": {
+        "goal": {
+          "title": "目標特化",
+          "description": "あなたの目標に合わせたお題をAIが出題",
+          "wordCount": "80〜120語"
+        },
+        "hobby": {
+          "title": "趣味・興味",
+          "description": "趣味・興味に基づいたお題で楽しく練習",
+          "wordCount": "60〜100語"
+        },
+        "business": {
+          "title": "ビジネス",
+          "description": "会議、報告、提案などビジネスシーンの実践練習",
+          "wordCount": "150〜250語"
+        },
+        "daily": {
+          "title": "日常",
+          "description": "日常会話、旅行、買い物など身近なトピック",
+          "wordCount": "80〜120語"
+        },
+        "social": {
+          "title": "社会問題",
+          "description": "環境、教育、テクノロジーなど社会的なテーマ",
+          "wordCount": "200〜300語"
+        },
+        "expression": {
+          "title": "表現リクエスト",
+          "description": "学びたい表現を指定してピンポイント練習",
+          "wordCount": "60〜80語"
+        },
+        "custom": {
+          "title": "カスタムお題",
+          "description": "キーワードを入力するとAIがお題を作成",
+          "wordCount": "自由"
+        }
+      }
+    },
+    "mode": {
+      "unsavedWarning": "入力中の英文が失われます。",
+      "rateLimitReached": "無料枠を使い切りました",
+      "upgradePrompt": "Proプランで学習を続けましょう",
+      "promptGenerationFailed": "お題の生成に失敗しました",
+      "dictionary": "辞書",
+      "expressionInputLabel": "練習したい表現を入力してください",
+      "expressionPlaceholder": "例: \"be used to ~ing\"",
+      "customInputLabel": "お題を自由に入力してください",
+      "customPlaceholder": "例: \"来週の出張について上司に報告するメール\"",
+      "prompt": "お題",
+      "differentPrompt": "別のお題",
+      "generatingPrompt": "お題を生成中...",
+      "recommendedWords": "推奨: {{count}}語",
+      "usefulExpressions": "使える表現",
+      "clickToSearch": "クリックで辞書検索",
+      "showExample": "例文を見る",
+      "hideExample": "例文を隠す",
+      "referenceExample": "参考：日本語での例文",
+      "hobbyTopicLabel": "テーマを指定して再生成（任意）",
+      "hobbyTopicPlaceholder": "例: \"最近見た映画について\"",
+      "yourAnswer": "あなたの回答",
+      "inputTyping": "タイピング",
+      "inputOcr": "手書き認識",
+      "ocrProOnly": "手書き認識はProプラン限定機能です",
+      "ocrUpgradeDescription": "アップグレードすると手書きの英文を読み取れます",
+      "wordCount": "{{count}} / {{recommended}}語",
+      "ocrLoading": "手書き認識を読み込み中...",
+      "ocrSuccess": "テキストを読み取りました",
+      "answerPlaceholder": "英語で回答を入力してください...",
+      "submitForGrading": "添削する"
+    },
+    "result": {
+      "toHome": "ホームへ",
+      "askQuestion": "質問する",
+      "overall": "総合",
+      "modelAnswer": "模範解答",
+      "play": "読み上げ",
+      "stop": "停止",
+      "copy": "コピー",
+      "copied": "コピーしました",
+      "notFound": "結果が見つかりませんでした",
+      "tryNewPrompt": "新しいお題に挑戦する",
+      "gradingFailed": "添削に失敗しました",
+      "continuePrompt": "続けて練習すると効果的です",
+      "practicesSameMode": "同じモードで練習",
+      "nextChallenge": "次のお題に挑戦"
+    }
+  },
+  "onboarding": {
+    "pageTitle": "プロフィール設定",
+    "pageSubtitle": "あなたに合ったお題を出すために教えてください",
+    "steps": {
+      "goal": "目標設定",
+      "level": "レベル確認",
+      "interests": "興味・関心",
+      "profile": "プロフィール",
+      "practice": "練習"
+    },
+    "goal": {
+      "title": "英語ライティングの目標は？",
+      "subtitle": "最も近いものを選んでください"
+    },
+    "goalDescriptions": {
+      "business": "メール・レポート・会議",
+      "travel": "旅行先でのコミュニケーション",
+      "study_abroad": "エッセイ・志望動機・レポート",
+      "daily": "友人とのやりとり・SNS",
+      "exam": "TOEIC・英検・IELTS"
+    },
+    "level": {
+      "title": "現在のレベルは？",
+      "subtitle": "お題の難易度調整に使います",
+      "toeicScore": "TOEICスコア（任意）",
+      "toeicPlaceholder": "例: 600"
+    },
+    "levelAbbreviations": {
+      "beginner": "初",
+      "intermediate": "中",
+      "advanced": "上",
+      "native": "上+"
+    },
+    "interests": {
+      "title": "興味・趣味を選んでください",
+      "subtitle": "選んだ興味に合わせたお題を出します（複数選択可）",
+      "customInterests": {
+        "label": "好きなもの・詳しいこと（任意・最大5個）",
+        "placeholder": "キーワードを入力 → Enterで追加",
+        "hint": "お題に反映したいキーワードを追加できます"
+      }
+    },
+    "profile": {
+      "title": "あなたについて教えてください",
+      "subtitle": "よりパーソナルなお題を出すために使われます",
+      "skip": "スキップ"
+    },
+    "student": {
+      "school": "学校（任意）",
+      "grade": "学年（任意）",
+      "club": "部活・サークル（任意）",
+      "clubPlaceholder": "例: サッカー部",
+      "major": "専攻・学部（任意）",
+      "majorPlaceholder": "例: 情報工学"
+    },
+    "working": {
+      "occupation": "職種（任意）",
+      "occupationCustomLabel": "職種を入力してください",
+      "occupationCustomPlaceholder": "例: データサイエンティスト",
+      "personalContext": "自由メモ（任意）",
+      "personalContextPlaceholder": "英語学習に関連する状況があれば自由に入力してください（例: 来月から海外赴任予定）"
+    },
+    "practice": {
+      "title": "はじめての練習",
+      "subtitle": "サービスの使い方を体験してみましょう",
+      "practicePrompt": "自己紹介と、今ワクワクしていることを1つ教えてください。",
+      "practiceHint": "I'm ... / I'm excited about ... / One thing I'm looking forward to is ...",
+      "recommendedWords": "推奨: {{count}}語程度",
+      "answerPlaceholder": "英語で書いてみましょう...",
+      "submit": "添削してもらう",
+      "skipPractice": "この練習をスキップ",
+      "skipWithError": "スキップして始める",
+      "gradingError": "添削に失敗しました。スキップして続けることができます。"
+    },
+    "success": {
+      "title": "おめでとうございます！",
+      "message": "はじめてのライティングが完了しました",
+      "corrections": "修正ポイント",
+      "correctionsCount": "{{count}}件"
+    },
+    "navigation": {
+      "next": "次へ",
+      "back": "戻る",
+      "complete": "学習をはじめる"
+    }
+  },
+  "header": {
+    "profile": "プロフィール",
+    "freePlan": "無料プラン",
+    "tokenUsage": "トークン使用量",
+    "freeQuota": "無料枠",
+    "resetIn": "{{days}}日後リセット",
+    "used": "{{tokens}} 使用",
+    "limit": "{{tokens}} 上限",
+    "upgradeToPro": "Proにアップグレード",
+    "upgradeSubtitle": "より快適に英語ライティングを学習",
+    "fromMonthly": "月額¥{{price}}〜",
+    "launchPrice": "ローンチ記念価格",
+    "launchPeriod": "〜2026年5月末",
+    "launchPriceNote": "期間中のご購入分に適用。期間終了後は通常価格での更新となります。",
+    "monthly": "月ごと",
+    "yearly": "年ごと",
+    "yearlyBilling": "¥{{price}} 年払い",
+    "monthlyBilling": "毎月の請求",
+    "proFeatures": {
+      "tokens": "月間2,000,000トークン",
+      "highAccuracy": "高精度モデルで添削",
+      "unlimitedHistory": "学習履歴・単語帳が無制限",
+      "ocr": "手書き文字認識（OCR）"
+    },
+    "startProPlan": "Proプランをはじめる",
+    "cancelAnytime": "いつでもキャンセル可能",
+    "deleteAccount": "アカウント削除",
+    "deleteAccountConfirm": "アカウントを削除しますか？",
+    "cannotUndo": "この操作は取り消せません",
+    "deleteWarning": "以下のデータがすべて削除されます：",
+    "deleteItems": {
+      "history": "ライティング履歴",
+      "vocabulary": "単語帳",
+      "profile": "プロフィール情報",
+      "account": "アカウント情報"
+    },
+    "delete": "削除する",
+    "deleting": "削除中...",
+    "accountDeleted": "アカウントを削除しました",
+    "accountDeleteFailed": "アカウントの削除に失敗しました",
+    "checkoutFailed": "決済の開始に失敗しました"
+  },
+  "feedback": {
+    "title": "フィードバック",
+    "subtitle": "ご意見・ご要望をお聞かせください",
+    "categories": {
+      "bug": "バグ報告",
+      "feature": "機能リクエスト",
+      "other": "その他・感想"
+    },
+    "placeholders": {
+      "bug": "どのような問題が発生しましたか？",
+      "feature": "どのような機能があると嬉しいですか？",
+      "other": "ご意見・ご感想をお聞かせください"
+    },
+    "submit": "送信する",
+    "submitting": "送信中...",
+    "success": {
+      "title": "ありがとうございます",
+      "message": "フィードバックを受け付けました"
+    },
+    "error": {
+      "title": "送信できませんでした",
+      "message": "送信に失敗しました。しばらく経ってからお試しください。",
+      "backToEdit": "戻って編集する"
+    },
+    "rateLimit": "送信回数の上限に達しました。しばらく経ってからお試しください。"
+  },
+  "quiz": {
+    "backToVocabulary": "単語帳に戻る",
+    "start": {
+      "title": "単語クイズ",
+      "description": "単語帳の復習をクイズ形式で",
+      "subtitle": "{{count}}問のクイズで復習しましょう",
+      "startButton": "クイズを始める",
+      "registeredWords": "登録単語",
+      "questionCount": "出題数",
+      "inputMode": "回答形式",
+      "quizMode": "出題モード",
+      "minWordsRequired": "クイズには最低4つの単語が必要です",
+      "wordsNeeded": "あと{{count}}つ登録してください",
+      "addWords": "単語を追加する"
+    },
+    "inputModes": {
+      "choice": "4択",
+      "recall": "想起"
+    },
+    "modes": {
+      "enToJa": "英語 → 日本語",
+      "jaToEn": "日本語 → 英語"
+    },
+    "badges": {
+      "choiceQuiz": "4択クイズ",
+      "freeRecall": "フリー想起",
+      "reviewPriority": "復習優先"
+    },
+    "question": {
+      "progress": "{{current}} / {{total}}",
+      "showAnswer": "答えを見る",
+      "next": "次へ",
+      "enToJaPrompt": "この英語の意味は？",
+      "jaToEnPrompt": "この日本語を英語で？",
+      "enToJaBadge": "英→日",
+      "jaToEnBadge": "日→英",
+      "listenPronunciation": "発音を聞く"
+    },
+    "feedback": {
+      "correct": "正解！",
+      "incorrect": "不正解",
+      "questionLabel": "問題",
+      "answerLabel": "答え",
+      "yourAnswer": "あなたの回答",
+      "example": "例文"
+    },
+    "result": {
+      "title": "クイズが終了しました",
+      "score": "{{correct}} / {{total}}",
+      "perfect": "パーフェクト！",
+      "great": "すばらしい！",
+      "good": "よくできました！",
+      "tryAgain": "もう一度挑戦しよう！",
+      "retry": "もう一度",
+      "finish": "単語帳に戻る",
+      "accuracy": "正答率",
+      "correctCount": "正解",
+      "incorrectCount": "不正解",
+      "timeSpent": "所要時間",
+      "mistakeWords": "間違えた単語",
+      "mistakeCount": "{{count}}件",
+      "seconds": "{{seconds}}秒",
+      "minutes": "{{mins}}分{{secs}}秒"
+    },
+    "recall": {
+      "remembered": "覚えてた",
+      "forgot": "忘れてた"
+    }
+  },
+  "grading": {
+    "inProgress": {
+      "title": "添削中...",
+      "subtitle": "AIがあなたの英作文を分析しています"
+    },
+    "stages": {
+      "grammar": "文法をチェック",
+      "vocabulary": "語彙を分析",
+      "structure": "構成を評価",
+      "feedback": "フィードバックを作成"
+    }
+  },
+  "types": {
+    "goals": {
+      "business": "ビジネス",
+      "travel": "旅行",
+      "study_abroad": "留学",
+      "daily": "日常会話",
+      "exam": "試験対策"
+    },
+    "levels": {
+      "beginner": "初級",
+      "intermediate": "中級",
+      "advanced": "上級",
+      "native": "ネイティブ"
+    },
+    "levelDescriptions": {
+      "beginner": "英検4〜3級 / TOEIC 〜400 / 中学英語レベル",
+      "intermediate": "英検準2〜2級 / TOEIC 400〜700 / 高校英語レベル",
+      "advanced": "英検準1級〜 / TOEIC 700〜 / ビジネスレベル",
+      "native": "英検1級〜 / TOEIC 900〜 / ネイティブレベル"
+    },
+    "modes": {
+      "goal": "目標特化",
+      "hobby": "趣味・興味",
+      "expression": "表現リクエスト",
+      "custom": "カスタムお題",
+      "business": "ビジネス",
+      "daily": "日常",
+      "social": "社会問題"
+    },
+    "skills": {
+      "grammar": "文法",
+      "vocabulary": "語彙",
+      "structure": "構成",
+      "content": "内容"
+    },
+    "structureRoles": {
+      "opinion": "意見",
+      "reason": "理由",
+      "example": "例示",
+      "counter": "反論",
+      "conclusion": "結論"
+    },
+    "srsRatings": {
+      "again": "もう一度",
+      "hard": "難しい",
+      "good": "正解",
+      "easy": "簡単"
+    },
+    "userTypes": {
+      "student": "学生",
+      "working": "社会人"
+    },
+    "schoolTypes": {
+      "junior_high": "中学校",
+      "high_school": "高校",
+      "university": "大学",
+      "graduate": "大学院"
+    },
+    "subtypes": {
+      "articles": "冠詞 (a/the)",
+      "tense": "時制",
+      "agreement": "主語と動詞の一致",
+      "prepositions": "前置詞",
+      "word_order": "語順",
+      "plurals": "複数形",
+      "modals": "助動詞",
+      "conditionals": "条件文",
+      "other_grammar": "その他の文法",
+      "word_choice": "語彙選択",
+      "collocation": "コロケーション",
+      "formality": "フォーマル度",
+      "spelling": "スペル",
+      "other_vocab": "その他の語彙",
+      "missing_intro": "導入不足",
+      "missing_conclusion": "結論不足",
+      "transitions": "接続詞・つなぎ",
+      "paragraph": "段落構成",
+      "other_structure": "その他の構成",
+      "off_topic": "的外れ",
+      "insufficient_detail": "詳細不足",
+      "unclear": "不明瞭",
+      "other_content": "その他の内容"
+    }
+  },
+  "interests": {
+    "technology": "テクノロジー",
+    "movies": "映画・ドラマ",
+    "music": "音楽",
+    "sports": "スポーツ",
+    "cooking": "料理・グルメ",
+    "travel": "旅行",
+    "reading": "読書",
+    "games": "ゲーム",
+    "art": "アート・デザイン",
+    "business": "ビジネス・経済",
+    "science": "科学",
+    "health": "健康・フィットネス",
+    "fashion": "ファッション",
+    "environment": "環境・SDGs",
+    "education": "教育"
+  },
+  "occupations": {
+    "it_engineer": "IT・エンジニア",
+    "sales_marketing": "営業・マーケティング",
+    "accounting": "経理・財務",
+    "hr_admin": "人事・総務",
+    "planning_management": "企画・経営",
+    "designer": "デザイナー",
+    "healthcare": "医療・看護",
+    "education_research": "教育・研究",
+    "legal_consulting": "法務・コンサルティング",
+    "manufacturing": "製造・技術",
+    "service": "接客・サービス",
+    "government": "公務員",
+    "freelance": "フリーランス",
+    "other": "その他"
+  },
+  "grades": {
+    "year1": "1年生",
+    "year2": "2年生",
+    "year3": "3年生",
+    "year4": "4年生",
+    "master1": "修士1年",
+    "master2": "修士2年",
+    "doctor1": "博士1年",
+    "doctor2": "博士2年",
+    "doctor3": "博士3年"
+  },
+  "dictionary": {
+    "title": "辞書・表現検索",
+    "placeholder": "英単語や表現を検索...",
+    "search": "検索",
+    "searching": "検索中...",
+    "emptyMessage": "ライティング中に使いたい\n単語や表現を検索できます",
+    "noResults": "検索結果が見つかりませんでした",
+    "searchError": "検索に失敗しました",
+    "addToVocab": "単語帳",
+    "added": "追加済",
+    "addedToVocab": "「{{term}}」を単語帳に追加しました",
+    "addToVocabError": "単語帳への追加に失敗しました",
+    "removedFromVocab": "「{{term}}」を単語帳から削除しました",
+    "removeFromVocabError": "単語帳からの削除に失敗しました",
+    "relatedTerms": "関連語・類義語"
+  },
+  "chat": {
+    "title": "質問する",
+    "emptyTitle": "添削について質問しよう",
+    "emptyDescription": "「なぜこの表現じゃダメなの？」\n「他の言い方はある？」\nなど、気軽に聞いてみてください",
+    "placeholder": "質問を入力...",
+    "thinking": "考え中...",
+    "askingAbout": "「{{text}}」について質問中",
+    "selectedText": "選択中のテキスト",
+    "questionAboutSelection": "以下の表現について質問です：「{{text}}」",
+    "rateLimitReached": "無料枠を使い切りました",
+    "rateLimitUpgrade": "Proプランで学習を続けましょう",
+    "sendError": "回答の取得に失敗しました"
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "retry": "再試行",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる",
+    "confirm": "確認",
+    "words": "語",
+    "wordCount": "{{count}}語",
+    "processing": "処理中...",
+    "back": "戻る",
+    "submit": "決定",
+    "generate": "生成",
+    "learnMore": "詳しく見る"
+  }
+}

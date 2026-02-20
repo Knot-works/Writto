@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,7 @@ export function QuizStart({
   onQuestionCountChange,
   onStart,
 }: QuizStartProps) {
+  const { t } = useTranslation("app");
   const canStart = inputMode === "recall" ? vocabCount >= 1 : vocabCount >= 4;
 
   return (
@@ -39,7 +41,7 @@ export function QuizStart({
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          単語帳に戻る
+          {t("quiz.backToVocabulary")}
         </Link>
       </div>
 
@@ -51,9 +53,9 @@ export function QuizStart({
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-primary/10 mb-3">
               <Sparkles className="h-7 w-7 text-primary" />
             </div>
-            <h1 className="font-serif text-2xl mb-1">単語クイズ</h1>
+            <h1 className="font-serif text-2xl mb-1">{t("quiz.start.title")}</h1>
             <p className="text-muted-foreground">
-              単語帳の復習をクイズ形式で
+              {t("quiz.start.description")}
             </p>
           </div>
 
@@ -64,7 +66,7 @@ export function QuizStart({
                 <BookOpen className="h-4 w-4 text-muted-foreground" />
                 <span className="font-serif text-2xl">{vocabCount}</span>
               </div>
-              <p className="text-xs text-muted-foreground">登録単語</p>
+              <p className="text-xs text-muted-foreground">{t("quiz.start.registeredWords")}</p>
             </div>
             <div className="w-px bg-border" />
             <div className="text-center">
@@ -72,13 +74,13 @@ export function QuizStart({
                 <Play className="h-4 w-4 text-muted-foreground" />
                 <span className="font-serif text-2xl">{questionCount}</span>
               </div>
-              <p className="text-xs text-muted-foreground">出題数</p>
+              <p className="text-xs text-muted-foreground">{t("quiz.start.questionCount")}</p>
             </div>
           </div>
 
           {/* Input mode selection */}
           <div className="mb-5">
-            <p className="text-sm font-medium mb-2.5 text-center">回答形式</p>
+            <p className="text-sm font-medium mb-2.5 text-center">{t("quiz.start.inputMode")}</p>
             <div className="flex gap-2">
               <button
                 onClick={() => onInputModeChange("choice")}
@@ -90,7 +92,7 @@ export function QuizStart({
               >
                 <div className="flex items-center justify-center gap-2">
                   <Grid2X2 className={`h-4 w-4 ${inputMode === "choice" ? "text-primary" : "text-muted-foreground"}`} />
-                  <span className={`text-sm font-medium ${inputMode === "choice" ? "text-primary" : ""}`}>4択</span>
+                  <span className={`text-sm font-medium ${inputMode === "choice" ? "text-primary" : ""}`}>{t("quiz.inputModes.choice")}</span>
                 </div>
               </button>
               <button
@@ -103,7 +105,7 @@ export function QuizStart({
               >
                 <div className="flex items-center justify-center gap-2">
                   <Eye className={`h-4 w-4 ${inputMode === "recall" ? "text-primary" : "text-muted-foreground"}`} />
-                  <span className={`text-sm font-medium ${inputMode === "recall" ? "text-primary" : ""}`}>想起</span>
+                  <span className={`text-sm font-medium ${inputMode === "recall" ? "text-primary" : ""}`}>{t("quiz.inputModes.recall")}</span>
                 </div>
               </button>
             </div>
@@ -111,7 +113,7 @@ export function QuizStart({
 
           {/* Mode selection */}
           <div className="mb-5">
-            <p className="text-sm font-medium mb-2.5 text-center">出題モード</p>
+            <p className="text-sm font-medium mb-2.5 text-center">{t("quiz.start.quizMode")}</p>
             <div className="flex gap-2">
               <button
                 onClick={() => onModeChange("en-to-ja")}
@@ -121,7 +123,7 @@ export function QuizStart({
                     : "border-border hover:border-primary/50"
                 }`}
               >
-                <div className="text-sm font-medium">英語 → 日本語</div>
+                <div className="text-sm font-medium">{t("quiz.modes.enToJa")}</div>
               </button>
               <button
                 onClick={() => onModeChange("ja-to-en")}
@@ -131,14 +133,14 @@ export function QuizStart({
                     : "border-border hover:border-primary/50"
                 }`}
               >
-                <div className="text-sm font-medium">日本語 → 英語</div>
+                <div className="text-sm font-medium">{t("quiz.modes.jaToEn")}</div>
               </button>
             </div>
           </div>
 
           {/* Question count selection */}
           <div className="mb-6">
-            <p className="text-sm font-medium mb-2.5 text-center">出題数</p>
+            <p className="text-sm font-medium mb-2.5 text-center">{t("quiz.start.questionCount")}</p>
             <div className="flex gap-2 justify-center">
               {QUESTION_COUNT_OPTIONS.map((count) => {
                 const isDisabled = count > vocabCount;
@@ -171,22 +173,22 @@ export function QuizStart({
               className="w-full h-11 gap-2"
             >
               <Play className="h-4 w-4" />
-              クイズを始める
+              {t("quiz.start.startButton")}
             </Button>
           ) : (
             <div className="space-y-3">
               <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
                 <p className="text-sm text-amber-800 dark:text-amber-200 text-center">
-                  クイズには最低4つの単語が必要です
+                  {t("quiz.start.minWordsRequired")}
                 </p>
                 <p className="text-xs text-amber-600 dark:text-amber-400 text-center mt-0.5">
-                  あと{4 - vocabCount}つ登録してください
+                  {t("quiz.start.wordsNeeded", { count: 4 - vocabCount })}
                 </p>
               </div>
               <Button asChild variant="outline" className="w-full">
                 <Link to="/vocabulary">
                   <BookOpen className="h-4 w-4 mr-2" />
-                  単語を追加する
+                  {t("quiz.start.addWords")}
                 </Link>
               </Button>
             </div>
@@ -196,10 +198,10 @@ export function QuizStart({
           {canStart && (
             <div className="flex justify-center gap-2 mt-4">
               <Badge variant="secondary" className="text-xs">
-                {inputMode === "choice" ? "4択クイズ" : "フリー想起"}
+                {inputMode === "choice" ? t("quiz.badges.choiceQuiz") : t("quiz.badges.freeRecall")}
               </Badge>
               <Badge variant="secondary" className="text-xs">
-                復習優先
+                {t("quiz.badges.reviewPriority")}
               </Badge>
             </div>
           )}

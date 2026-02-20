@@ -86,7 +86,7 @@ export function DeckGeneratorDialog({
   deckLimit,
   maxVocabPerDeck,
 }: DeckGeneratorDialogProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [theme, setTheme] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [vocabType, setVocabType] = useState<VocabGenerationType>("both");
@@ -151,6 +151,7 @@ export function DeckGeneratorDialog({
         vocabType,
         count,
         level,
+        lang: profile?.uiLanguage,
       });
 
       setGeneratedItems(result.vocabulary);

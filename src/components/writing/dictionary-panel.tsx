@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/auth-context";
 import { callLookupWord, isRateLimitError, getRateLimitMessage, type LookupResult } from "@/lib/functions";
 import { saveVocab, deleteVocab } from "@/lib/firestore";
@@ -27,7 +28,8 @@ interface DictionaryPanelProps {
 }
 
 export function DictionaryPanel({ onClose, searchTrigger, emptyMessage }: DictionaryPanelProps) {
-  const { user } = useAuth();
+  const { t } = useTranslation("app");
+  const { user, profile } = useAuth();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<LookupResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -38,29 +40,33 @@ export function DictionaryPanel({ onClose, searchTrigger, emptyMessage }: Dictio
   const isSearchingRef = useRef(false);
   const lastSearchTriggerRef = useRef<number>(0);
 
+  // For dictionary, use uiLanguage if set, otherwise fall back to explanationLang
+  // This ensures Korean UI users get Korean dictionary results
+  const dictionaryLang = profile?.uiLanguage === "ko" ? "ko" : profile?.explanationLang;
+
   const handleSearch = useCallback(async () => {
     if (!query.trim() || isSearchingRef.current) return;
     isSearchingRef.current = true;
     setSearching(true);
     setResults([]);
     try {
-      const response = await callLookupWord(query.trim());
+      const response = await callLookupWord(query.trim(), dictionaryLang);
       setResults(response.results || []);
       if (!response.results?.length) {
-        toast.info("検索結果が見つかりませんでした");
+        toast.info(t("dictionary.noResults"));
       }
     } catch (err) {
       console.error("Lookup error:", err);
       if (isRateLimitError(err)) {
         toast.error(getRateLimitMessage(err), { duration: 8000 });
       } else {
-        toast.error("検索に失敗しました");
+        toast.error(t("dictionary.searchError"));
       }
     } finally {
       isSearchingRef.current = false;
       setSearching(false);
     }
-  }, [query]);
+  }, [query, dictionaryLang, t]);
 
   // Handle external search trigger with cooldown to prevent rapid API calls
   useEffect(() => {
@@ -88,17 +94,17 @@ export function DictionaryPanel({ onClose, searchTrigger, emptyMessage }: Dictio
         setSearching(true);
         setResults([]);
         try {
-          const response = await callLookupWord(searchTrigger.word.trim());
+          const response = await callLookupWord(searchTrigger.word.trim(), dictionaryLang);
           setResults(response.results || []);
           if (!response.results?.length) {
-            toast.info("検索結果が見つかりませんでした");
+            toast.info(t("dictionary.noResults"));
           }
         } catch (err) {
           console.error("Lookup error:", err);
           if (isRateLimitError(err)) {
             toast.error(getRateLimitMessage(err), { duration: 8000 });
           } else {
-            toast.error("検索に失敗しました");
+            toast.error(t("dictionary.searchError"));
           }
         } finally {
           isSearchingRef.current = false;
@@ -106,7 +112,7 @@ export function DictionaryPanel({ onClose, searchTrigger, emptyMessage }: Dictio
         }
       }, 50);
     }
-  }, [searchTrigger]);
+  }, [searchTrigger, dictionaryLang, t]);
 
   const handleAddToVocab = async (result: LookupResult) => {
     if (!user) return;
@@ -126,10 +132,10 @@ export function DictionaryPanel({ onClose, searchTrigger, emptyMessage }: Dictio
       });
 
       setSavedTerms((prev) => new Map(prev).set(result.term, vocabId));
-      toast.success(`「${result.term}」を単語帳に追加しました`);
+      toast.success(t("dictionary.addedToVocab", { term: result.term }));
     } catch (err) {
       console.error("Save vocab error:", err);
-      toast.error("単語帳への追加に失敗しました");
+      toast.error(t("dictionary.addToVocabError"));
     } finally {
       setSavingTerm(null);
     }
@@ -148,10 +154,10 @@ export function DictionaryPanel({ onClose, searchTrigger, emptyMessage }: Dictio
         next.delete(term);
         return next;
       });
-      toast.success(`「${term}」を単語帳から削除しました`);
+      toast.success(t("dictionary.removedFromVocab", { term }));
     } catch (err) {
       console.error("Remove vocab error:", err);
-      toast.error("単語帳からの削除に失敗しました");
+      toast.error(t("dictionary.removeFromVocabError"));
     } finally {
       setRemovingTerm(null);
     }
@@ -171,7 +177,7 @@ export function DictionaryPanel({ onClose, searchTrigger, emptyMessage }: Dictio
       <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
         <div className="flex items-center gap-2">
           <BookOpen className="h-4 w-4 text-primary" />
-          <span className="font-serif text-sm font-medium">辞書・表現検索</span>
+          <span className="font-serif text-sm font-medium">{t("dictionary.title")}</span>
         </div>
         {onClose && (
           <Button
@@ -191,7 +197,7 @@ export function DictionaryPanel({ onClose, searchTrigger, emptyMessage }: Dictio
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             ref={inputRef}
-            placeholder="英単語や表現を検索..."
+            placeholder={t("dictionary.placeholder")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleSearch()}
@@ -208,7 +214,7 @@ export function DictionaryPanel({ onClose, searchTrigger, emptyMessage }: Dictio
             {searching ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              "検索"
+              t("dictionary.search")
             )}
           </Button>
         </div>
@@ -219,15 +225,15 @@ export function DictionaryPanel({ onClose, searchTrigger, emptyMessage }: Dictio
         {searching && (
           <div className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
-            <span className="text-sm">検索中...</span>
+            <span className="text-sm">{t("dictionary.searching")}</span>
           </div>
         )}
 
         {!searching && results.length === 0 && (
           <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
             <Search className="h-8 w-8 text-muted-foreground/30" />
-            <p className="text-sm text-muted-foreground">
-              {emptyMessage || "ライティング中に使いたい\n単語や表現を検索できます"}
+            <p className="text-sm text-muted-foreground whitespace-pre-line">
+              {emptyMessage || t("dictionary.emptyMessage")}
             </p>
           </div>
         )}
@@ -280,7 +286,7 @@ export function DictionaryPanel({ onClose, searchTrigger, emptyMessage }: Dictio
                 ) : (
                   <Plus className="h-3 w-3" />
                 )}
-                {savedTerms.has(result.term) ? "追加済" : "単語帳"}
+                {savedTerms.has(result.term) ? t("dictionary.added") : t("dictionary.addToVocab")}
               </Button>
             </div>
 
@@ -307,7 +313,7 @@ export function DictionaryPanel({ onClose, searchTrigger, emptyMessage }: Dictio
             {result.related?.length > 0 && (
               <div className="mt-3">
                 <span className="mb-1.5 block text-xs font-medium text-muted-foreground/70">
-                  関連語・類義語
+                  {t("dictionary.relatedTerms")}
                 </span>
                 <div className="flex flex-wrap gap-2">
                 {result.related.map((rel) => (

@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/auth-context";
 import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
+import { useTypeLabels } from "@/lib/translations";
 import { getWritings } from "@/lib/firestore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,12 +18,14 @@ import {
   Crown,
   Info,
 } from "lucide-react";
-import { type Writing, type WritingMode, MODE_LABELS } from "@/types";
+import type { Writing, WritingMode } from "@/types";
 
 // 無料プランの履歴保持日数
 const FREE_PLAN_HISTORY_DAYS = 7;
 
 export default function HistoryPage() {
+  const { t, i18n } = useTranslation("app");
+  const { getModeLabel } = useTypeLabels();
   const { user, profile } = useAuth();
   const { open: openUpgradeModal } = useUpgradeModal();
   const [writings, setWritings] = useState<Writing[]>([]);
@@ -29,6 +33,7 @@ export default function HistoryPage() {
   const [filterMode, setFilterMode] = useState<"all" | WritingMode>("all");
 
   const isFreePlan = profile?.plan !== "pro";
+  const locale = i18n.language === "ko" ? "ko-KR" : "ja-JP";
 
   useEffect(() => {
     if (!user) return;
@@ -80,7 +85,9 @@ export default function HistoryPage() {
 
   // Group by month
   const grouped = filtered.reduce<Record<string, Writing[]>>((acc, w) => {
-    const key = `${w.createdAt.getFullYear()}年${w.createdAt.getMonth() + 1}月`;
+    const year = w.createdAt.getFullYear();
+    const month = w.createdAt.getMonth() + 1;
+    const key = t("history.group.monthYear", { year, month });
     if (!acc[key]) acc[key] = [];
     acc[key].push(w);
     return acc;
@@ -98,9 +105,9 @@ export default function HistoryPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-1">
-        <h1 className="font-serif text-3xl">学習履歴</h1>
+        <h1 className="font-serif text-3xl">{t("history.title")}</h1>
         <p className="text-muted-foreground">
-          過去の英作文と添削結果を振り返り
+          {t("history.subtitle")}
         </p>
       </div>
 
@@ -111,10 +118,10 @@ export default function HistoryPage() {
             <Info className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-500" />
             <div className="flex-1">
               <p className="text-sm text-amber-800 dark:text-amber-200">
-                無料プランでは過去{FREE_PLAN_HISTORY_DAYS}日間の履歴のみ表示されます
+                {t("history.freePlanBanner.limit", { days: FREE_PLAN_HISTORY_DAYS })}
                 {hiddenCount > 0 && (
                   <span className="ml-1 text-amber-600 dark:text-amber-400">
-                    （{hiddenCount}件の古い履歴は非表示）
+                    {t("history.freePlanBanner.hiddenCount", { count: hiddenCount })}
                   </span>
                 )}
               </p>
@@ -126,7 +133,7 @@ export default function HistoryPage() {
               onClick={openUpgradeModal}
             >
               <Crown className="h-3.5 w-3.5" />
-              Proで無制限に
+              {t("history.freePlanBanner.upgradeLink")}
             </Button>
           </CardContent>
         </Card>
@@ -138,11 +145,11 @@ export default function HistoryPage() {
         onValueChange={(v) => setFilterMode(v as "all" | WritingMode)}
       >
         <TabsList className="flex-wrap">
-          <TabsTrigger value="all">すべて</TabsTrigger>
-          <TabsTrigger value="goal">目標特化</TabsTrigger>
-          <TabsTrigger value="hobby">趣味</TabsTrigger>
-          <TabsTrigger value="expression">表現</TabsTrigger>
-          <TabsTrigger value="custom">カスタム</TabsTrigger>
+          <TabsTrigger value="all">{t("history.filters.all")}</TabsTrigger>
+          <TabsTrigger value="goal">{t("history.filters.goal")}</TabsTrigger>
+          <TabsTrigger value="hobby">{t("history.filters.hobby")}</TabsTrigger>
+          <TabsTrigger value="expression">{t("history.filters.expression")}</TabsTrigger>
+          <TabsTrigger value="custom">{t("history.filters.custom")}</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -154,15 +161,15 @@ export default function HistoryPage() {
             <div className="text-center">
               <p className="font-medium">
                 {filterMode === "all"
-                  ? "まだ学習記録がありません"
-                  : `「${MODE_LABELS[filterMode as WritingMode]}」モードの記録がありません`}
+                  ? t("history.empty.title")
+                  : t("history.emptyFiltered", { mode: getModeLabel(filterMode as WritingMode) })}
               </p>
               <p className="text-sm text-muted-foreground">
-                ライティングに挑戦して記録を残しましょう
+                {t("history.empty.description")}
               </p>
             </div>
             <Button asChild>
-              <Link to="/write">ライティングを始める</Link>
+              <Link to="/write">{t("history.empty.startWriting")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -174,7 +181,7 @@ export default function HistoryPage() {
                 <Calendar className="h-4 w-4" />
                 {month}
                 <Badge variant="secondary" className="ml-1">
-                  {items.length}件
+                  {t("history.group.count", { count: items.length })}
                 </Badge>
               </div>
               <div className="space-y-2">
@@ -192,12 +199,12 @@ export default function HistoryPage() {
                             variant="outline"
                             className="text-xs font-normal"
                           >
-                            {MODE_LABELS[w.mode]}
+                            {getModeLabel(w.mode)}
                           </Badge>
-                          <span>{w.wordCount}語</span>
+                          <span>{t("history.wordCount", { count: w.wordCount })}</span>
                           <span>・</span>
                           <span>
-                            {w.createdAt.toLocaleDateString("ja-JP", {
+                            {w.createdAt.toLocaleDateString(locale, {
                               month: "short",
                               day: "numeric",
                             })}
@@ -211,7 +218,7 @@ export default function HistoryPage() {
                             className="gap-1.5"
                           >
                             <Eye className="h-3.5 w-3.5" />
-                            結果
+                            {t("history.actions.viewResult")}
                           </Link>
                         </Button>
                         <Button variant="ghost" size="sm" asChild>
@@ -220,7 +227,7 @@ export default function HistoryPage() {
                             className="gap-1.5"
                           >
                             <RefreshCw className="h-3.5 w-3.5" />
-                            再挑戦
+                            {t("history.actions.retry")}
                           </Link>
                         </Button>
                       </div>

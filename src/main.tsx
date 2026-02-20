@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { RootLayout } from "@/components/root-layout";
 import { AppLayout } from "@/components/layout/app-layout";
 import { ChunkErrorBoundary } from "@/components/chunk-error-boundary";
+import "./i18n";
 import "./index.css";
 
 // Page loading fallback
@@ -29,6 +30,12 @@ const NotFoundPage = lazy(() => import("@/routes/not-found"));
 const TopicPage = lazy(() => import("@/routes/topics/topic"));
 const TopicPageKo = lazy(() => import("@/routes/ko/topics/topic"));
 const LandingPageKo = lazy(() => import("@/routes/ko/landing"));
+const FAQPageKo = lazy(() => import("@/routes/ko/faq"));
+const TermsPageKo = lazy(() => import("@/routes/ko/terms"));
+const PrivacyPageKo = lazy(() => import("@/routes/ko/privacy"));
+const ContactPageKo = lazy(() => import("@/routes/ko/contact"));
+const PricingPageKo = lazy(() => import("@/routes/ko/pricing"));
+const AboutPageKo = lazy(() => import("@/routes/ko/about"));
 const OnboardingPage = lazy(() => import("@/routes/onboarding"));
 const DashboardPage = lazy(() => import("@/routes/dashboard"));
 const WriteModePage = lazy(() => import("@/routes/write/index"));
@@ -70,6 +77,12 @@ const router = createBrowserRouter([
       // Korean routes
       { path: "/ko", element: <LazyPage Component={LandingPageKo} /> },
       { path: "/ko/topics/:slug", element: <LazyPage Component={TopicPageKo} /> },
+      { path: "/ko/faq", element: <LazyPage Component={FAQPageKo} /> },
+      { path: "/ko/terms", element: <LazyPage Component={TermsPageKo} /> },
+      { path: "/ko/privacy", element: <LazyPage Component={PrivacyPageKo} /> },
+      { path: "/ko/contact", element: <LazyPage Component={ContactPageKo} /> },
+      { path: "/ko/pricing", element: <LazyPage Component={PricingPageKo} /> },
+      { path: "/ko/about", element: <LazyPage Component={AboutPageKo} /> },
 
       // Authenticated routes
       {

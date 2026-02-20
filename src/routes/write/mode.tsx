@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef, Suspense, lazy } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/auth-context";
 import { useToken } from "@/contexts/token-context";
 import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 import { useGrading } from "@/contexts/grading-context";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { useTypeLabels } from "@/lib/translations";
 import { callGeneratePrompt, isRateLimitError } from "@/lib/functions";
 import { Analytics } from "@/lib/firebase";
 import { getEstimatedRemaining } from "@/lib/rate-limits";
@@ -37,9 +39,11 @@ import {
   Search,
   AlertCircle,
 } from "lucide-react";
-import { type WritingMode, MODE_LABELS } from "@/types";
+import type { WritingMode } from "@/types";
 
 export default function WritingPage() {
+  const { t } = useTranslation("app");
+  const { getModeLabel } = useTypeLabels();
   const { user, profile } = useAuth();
   const { tokenUsage } = useToken();
   const { open: openUpgradeModal } = useUpgradeModal();
@@ -86,7 +90,7 @@ export default function WritingPage() {
   const hasUnsavedContent = userAnswer.trim().length > 0 && !isSubmitting;
   const { UnsavedChangesDialog } = useUnsavedChanges({
     hasUnsavedChanges: hasUnsavedContent,
-    message: "入力中の英文が失われます。",
+    message: t("writing.mode.unsavedWarning"),
   });
 
   const generatePrompt = useCallback(async (topicOverride?: string) => {
@@ -99,7 +103,7 @@ export default function WritingPage() {
       // For hobby mode with topic override, pass the topicOverride
       // For other modes, pass topicOverride if provided
       const inputToPass = mode === "expression" ? customInput : topicOverride;
-      const result = await callGeneratePrompt(profile, mode, inputToPass);
+      const result = await callGeneratePrompt(profile, mode, inputToPass, profile.uiLanguage);
       setPrompt(result.prompt);
       setHint(result.hint);
       setRecommendedWords(result.recommendedWords);
@@ -120,10 +124,10 @@ export default function WritingPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-amber-900">
-                    無料枠を使い切りました
+                    {t("writing.mode.rateLimitReached")}
                   </p>
                   <p className="mt-1 text-sm text-amber-700/80">
-                    Proプランで学習を続けましょう
+                    {t("writing.mode.upgradePrompt")}
                   </p>
                 </div>
               </div>
@@ -133,7 +137,7 @@ export default function WritingPage() {
         );
         openUpgradeModal();
       } else {
-        toast.error("お題の生成に失敗しました");
+        toast.error(t("writing.mode.promptGenerationFailed"));
       }
     } finally {
       isGeneratingRef.current = false;
@@ -153,7 +157,7 @@ export default function WritingPage() {
     setGenerating(true);
     setShowExample(false);
     try {
-      const result = await callGeneratePrompt(profile, mode, customInput);
+      const result = await callGeneratePrompt(profile, mode, customInput, profile.uiLanguage);
       setPrompt(result.prompt);
       setHint(result.hint);
       setRecommendedWords(result.recommendedWords);
@@ -172,10 +176,10 @@ export default function WritingPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-amber-900">
-                    無料枠を使い切りました
+                    {t("writing.mode.rateLimitReached")}
                   </p>
                   <p className="mt-1 text-sm text-amber-700/80">
-                    Proプランで学習を続けましょう
+                    {t("writing.mode.upgradePrompt")}
                   </p>
                 </div>
               </div>
@@ -185,7 +189,7 @@ export default function WritingPage() {
         );
         openUpgradeModal();
       } else {
-        toast.error("お題の生成に失敗しました");
+        toast.error(t("writing.mode.promptGenerationFailed"));
       }
     } finally {
       isGeneratingRef.current = false;
@@ -231,10 +235,10 @@ export default function WritingPage() {
             onClick={() => navigate(-1)}
           >
             <ArrowLeft className="mr-1.5 h-4 w-4" />
-            戻る
+            {t("common.back")}
           </Button>
           <div className="flex-1">
-            <h1 className="font-serif text-2xl">{MODE_LABELS[mode]}</h1>
+            <h1 className="font-serif text-2xl">{getModeLabel(mode)}</h1>
           </div>
           {/* Dictionary toggle (mobile + collapsed) */}
           {!dictOpen && (
@@ -245,7 +249,7 @@ export default function WritingPage() {
               onClick={() => setDictOpen(true)}
             >
               <BookOpen className="h-4 w-4" />
-              <span className="hidden sm:inline">辞書</span>
+              <span className="hidden sm:inline">{t("writing.mode.dictionary")}</span>
             </Button>
           )}
         </div>
@@ -256,15 +260,15 @@ export default function WritingPage() {
             <CardContent className="p-6 space-y-4">
               <p className="font-medium">
                 {mode === "expression"
-                  ? "練習したい表現を入力してください"
-                  : "お題を自由に入力してください"}
+                  ? t("writing.mode.expressionInputLabel")
+                  : t("writing.mode.customInputLabel")}
               </p>
               <div className="flex gap-3">
                 <Input
                   placeholder={
                     mode === "expression"
-                      ? '例: "be used to ~ing"'
-                      : '例: "来週の出張について上司に報告するメール"'
+                      ? t("writing.mode.expressionPlaceholder")
+                      : t("writing.mode.customPlaceholder")
                   }
                   value={customInput}
                   onChange={(e) => setCustomInput(e.target.value)}
@@ -275,7 +279,7 @@ export default function WritingPage() {
                   onClick={handleCustomSubmit}
                   disabled={!customInput.trim() || generating}
                 >
-                  {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : "決定"}
+                  {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : t("common.submit")}
                 </Button>
               </div>
             </CardContent>
@@ -290,7 +294,7 @@ export default function WritingPage() {
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium text-primary">
-                    お題
+                    {t("writing.mode.prompt")}
                   </span>
                 </div>
                 {mode !== "custom" && (
@@ -304,7 +308,7 @@ export default function WritingPage() {
                     <RefreshCw
                       className={`h-3.5 w-3.5 ${generating ? "animate-spin" : ""}`}
                     />
-                    別のお題
+                    {t("writing.mode.differentPrompt")}
                   </Button>
                 )}
               </div>
@@ -312,7 +316,7 @@ export default function WritingPage() {
               {generating ? (
                 <div className="flex items-center gap-2 py-4 text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  お題を生成中...
+                  {t("writing.mode.generatingPrompt")}
                 </div>
               ) : (
                 <>
@@ -321,7 +325,7 @@ export default function WritingPage() {
                   </p>
                   <div className="flex items-center gap-3 flex-wrap">
                     <Badge variant="secondary">
-                      推奨: {recommendedWords}語
+                      {t("writing.mode.recommendedWords", { count: recommendedWords })}
                     </Badge>
                     {hint && (
                       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -336,7 +340,7 @@ export default function WritingPage() {
                     <div className="flex items-center gap-2 flex-wrap mt-3">
                       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                         <Tag className="h-3.5 w-3.5" />
-                        <span>使える表現:</span>
+                        <span>{t("writing.mode.usefulExpressions")}:</span>
                       </div>
                       {keywords.map((keyword, idx) => (
                         <button
@@ -346,7 +350,7 @@ export default function WritingPage() {
                             setDictSearchTrigger({ word: keyword, timestamp: Date.now() });
                           }}
                           className="group relative rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
-                          title="クリックで辞書検索"
+                          title={t("writing.mode.clickToSearch")}
                         >
                           <span className="flex items-center gap-1">
                             {keyword}
@@ -365,7 +369,7 @@ export default function WritingPage() {
                         className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
                       >
                         <FileText className="h-3.5 w-3.5" />
-                        <span>例文を{showExample ? "隠す" : "見る"}</span>
+                        <span>{showExample ? t("writing.mode.hideExample") : t("writing.mode.showExample")}</span>
                         {showExample ? (
                           <ChevronUp className="h-3.5 w-3.5" />
                         ) : (
@@ -375,7 +379,7 @@ export default function WritingPage() {
                       {showExample && (
                         <div className="mt-2 rounded-lg border border-border/40 bg-muted/30 p-4">
                           <p className="mb-2 text-xs font-medium text-muted-foreground">
-                            参考：日本語での例文
+                            {t("writing.mode.referenceExample")}
                           </p>
                           <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/80">
                             {exampleJa}
@@ -389,11 +393,11 @@ export default function WritingPage() {
                   {mode === "hobby" && (
                     <div className="mt-4 rounded-lg border border-border/40 bg-muted/30 p-3">
                       <p className="mb-2 text-xs font-medium text-muted-foreground">
-                        テーマを指定して再生成（任意）
+                        {t("writing.mode.hobbyTopicLabel")}
                       </p>
                       <div className="flex gap-2">
                         <Input
-                          placeholder='例: "最近見た映画について"'
+                          placeholder={t("writing.mode.hobbyTopicPlaceholder")}
                           value={hobbyTopic}
                           onChange={(e) => setHobbyTopic(e.target.value)}
                           onKeyDown={(e) =>
@@ -412,7 +416,7 @@ export default function WritingPage() {
                           onClick={() => generatePrompt(hobbyTopic)}
                           disabled={generating || !hobbyTopic.trim()}
                         >
-                          生成
+                          {t("common.generate")}
                         </Button>
                       </div>
                     </div>
@@ -429,7 +433,7 @@ export default function WritingPage() {
             {/* Header with Input Mode Toggle */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <p className="font-medium">あなたの回答</p>
+                <p className="font-medium">{t("writing.mode.yourAnswer")}</p>
                 {/* Input mode toggle - Available for all, Pro feature */}
                 <div className="flex rounded-lg bg-muted/60 p-0.5">
                   <button
@@ -441,7 +445,7 @@ export default function WritingPage() {
                     }`}
                   >
                     <Keyboard className="h-3 w-3" />
-                    タイピング
+                    {t("writing.mode.inputTyping")}
                   </button>
                   <button
                     onClick={() => {
@@ -449,7 +453,7 @@ export default function WritingPage() {
                         setInputMode("ocr");
                       } else {
                         toast.custom(
-                          (t) => (
+                          (toastId) => (
                             <div className="w-[360px] rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-4 shadow-lg">
                               <div className="flex items-start gap-3">
                                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
@@ -457,21 +461,21 @@ export default function WritingPage() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="font-medium text-amber-900">
-                                    手書き認識はProプラン限定機能です
+                                    {t("writing.mode.ocrProOnly")}
                                   </p>
                                   <p className="mt-1 text-sm text-amber-700/80">
-                                    アップグレードすると手書きの英文を読み取れます
+                                    {t("writing.mode.ocrUpgradeDescription")}
                                   </p>
                                 </div>
                               </div>
                               <button
                                 onClick={() => {
-                                  toast.dismiss(t);
+                                  toast.dismiss(toastId);
                                   openUpgradeModal();
                                 }}
                                 className="mt-3 w-full rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2.5 text-sm font-medium text-white transition-all hover:from-amber-600 hover:to-orange-600"
                               >
-                                詳しく見る
+                                {t("common.learnMore")}
                               </button>
                             </div>
                           ),
@@ -486,7 +490,7 @@ export default function WritingPage() {
                     }`}
                   >
                     <Camera className="h-3 w-3" />
-                    手書き認識
+                    {t("writing.mode.inputOcr")}
                     {tokenUsage?.plan !== "pro" && (
                       <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500/10">
                         <Lock className="h-2.5 w-2.5 text-amber-600" />
@@ -503,7 +507,7 @@ export default function WritingPage() {
                       : "text-muted-foreground"
                   }`}
                 >
-                  {wordCount} / {recommendedWords}語
+                  {t("writing.mode.wordCount", { count: wordCount, recommended: recommendedWords })}
                 </span>
               )}
             </div>
@@ -515,14 +519,14 @@ export default function WritingPage() {
                   <Suspense fallback={
                     <div className="flex flex-col items-center gap-4 py-12">
                       <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
-                      <p className="text-sm text-muted-foreground">手書き認識を読み込み中...</p>
+                      <p className="text-sm text-muted-foreground">{t("writing.mode.ocrLoading")}</p>
                     </div>
                   }>
                     <OcrInput
                       onComplete={(text) => {
                         setUserAnswer(text);
                         setInputMode("typing");
-                        toast.success("テキストを読み取りました");
+                        toast.success(t("writing.mode.ocrSuccess"));
                       }}
                       onCancel={() => setInputMode("typing")}
                     />
@@ -534,7 +538,7 @@ export default function WritingPage() {
                 {/* Typing Input Mode */}
                 <div className="writing-area rounded-xl">
                   <Textarea
-                    placeholder="英語で回答を入力してください..."
+                    placeholder={t("writing.mode.answerPlaceholder")}
                     value={userAnswer}
                     onChange={(e) => setUserAnswer(e.target.value)}
                     rows={12}
@@ -550,7 +554,7 @@ export default function WritingPage() {
                     size="lg"
                   >
                     <Send className="h-4 w-4" />
-                    添削する
+                    {t("writing.mode.submitForGrading")}
                   </Button>
                 </div>
               </>

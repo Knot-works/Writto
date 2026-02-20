@@ -1,27 +1,30 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, Sparkles, BookOpen, PenLine, Lightbulb } from "lucide-react";
 
-// Progress stages with icons and labels
-const STAGES = [
-  { id: "grammar", label: "文法をチェック", icon: PenLine },
-  { id: "vocabulary", label: "語彙を分析", icon: BookOpen },
-  { id: "structure", label: "構成を評価", icon: Sparkles },
-  { id: "feedback", label: "フィードバックを作成", icon: Lightbulb },
-] as const;
+// Progress stage IDs (labels come from translations)
+const STAGE_IDS = ["grammar", "vocabulary", "structure", "feedback"] as const;
+const STAGE_ICONS = {
+  grammar: PenLine,
+  vocabulary: BookOpen,
+  structure: Sparkles,
+  feedback: Lightbulb,
+} as const;
 
 interface GradingInProgressProps {
   compact?: boolean;
 }
 
 export function GradingInProgress({ compact = false }: GradingInProgressProps) {
+  const { t } = useTranslation("app");
   const [currentStage, setCurrentStage] = useState(0);
 
   // Progress through stages
   useEffect(() => {
     const stageInterval = setInterval(() => {
       setCurrentStage((prev) => {
-        if (prev < STAGES.length - 1) return prev + 1;
+        if (prev < STAGE_IDS.length - 1) return prev + 1;
         return prev; // Stay on last stage
       });
     }, 2200);
@@ -36,14 +39,14 @@ export function GradingInProgress({ compact = false }: GradingInProgressProps) {
         <Card className="w-full border-primary/20 bg-gradient-to-br from-primary/[0.03] to-transparent animate-scale-in">
           <CardContent className="p-8">
             <div className="space-y-6">
-              {STAGES.map((stage, index) => {
-                const Icon = stage.icon;
+              {STAGE_IDS.map((stageId, index) => {
+                const Icon = STAGE_ICONS[stageId];
                 const isComplete = index < currentStage;
                 const isCurrent = index === currentStage;
 
                 return (
                   <div
-                    key={stage.id}
+                    key={stageId}
                     className={`flex items-center gap-4 transition-opacity duration-300 ${
                       index > currentStage ? "opacity-30" : ""
                     }`}
@@ -76,7 +79,7 @@ export function GradingInProgress({ compact = false }: GradingInProgressProps) {
                             : "text-muted-foreground"
                         }`}
                       >
-                        {stage.label}
+                        {t(`grading.stages.${stageId}`)}
                       </span>
                       {isCurrent && (
                         <span className="ml-2 inline-flex gap-0.5 align-middle">

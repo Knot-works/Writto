@@ -3,7 +3,8 @@ export type Level = "beginner" | "intermediate" | "advanced" | "native";
 export type WritingMode = "goal" | "hobby" | "expression" | "custom" | "business" | "daily" | "social";
 export type VocabType = "word" | "expression";
 export type Plan = "free" | "pro";
-export type ExplanationLang = "ja" | "en";
+export type ExplanationLang = "ja" | "en" | "ko";
+export type UILanguage = "ja" | "ko";
 export type UserType = "student" | "working";
 export type SchoolType = "junior_high" | "high_school" | "university" | "graduate";
 
@@ -98,6 +99,7 @@ export interface UserProfile {
   customInterests?: string[];  // 自由入力の興味（バンド名、作品名など）
   targetExpressions: string[];
   explanationLang: ExplanationLang;
+  uiLanguage?: UILanguage;  // UI言語（ja/ko）、デフォルトはja
   plan: Plan;
   createdAt: Date;
   // Personalization fields (all optional for backward compat)
@@ -385,6 +387,11 @@ export const INTEREST_OPTIONS = [
 export const USER_TYPE_LABELS: Record<UserType, string> = {
   student: "学生",
   working: "社会人",
+};
+
+export const UI_LANGUAGE_LABELS: Record<UILanguage, string> = {
+  ja: "日本語",
+  ko: "한국어",
 };
 
 export const SCHOOL_TYPE_LABELS: Record<SchoolType, string> = {

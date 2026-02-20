@@ -1,9 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/auth-context";
 import { saveUserProfile, saveWriting, updateStreak } from "@/lib/firestore";
 import { callGradeWriting } from "@/lib/functions";
+import {
+  useTypeLabels,
+  useInterestOptions,
+  useOccupationOptions,
+  useGradeOptions,
+} from "@/lib/translations";
+import { getDetectedLanguage } from "@/hooks/use-language";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,11 +44,6 @@ import {
   type SchoolType,
   GOAL_LABELS,
   LEVEL_LABELS,
-  LEVEL_DESCRIPTIONS,
-  INTEREST_OPTIONS,
-  SCHOOL_TYPE_LABELS,
-  GRADE_OPTIONS,
-  OCCUPATION_OPTIONS,
 } from "@/types";
 
 const GOAL_ICONS: Record<Goal, React.ReactNode> = {
@@ -51,22 +54,22 @@ const GOAL_ICONS: Record<Goal, React.ReactNode> = {
   exam: <FileText className="h-6 w-6" />,
 };
 
-const GOAL_DESCRIPTIONS: Record<Goal, string> = {
-  business: "メール・レポート・会議",
-  travel: "旅行先でのコミュニケーション",
-  study_abroad: "エッセイ・志望動機・レポート",
-  daily: "友人とのやりとり・SNS",
-  exam: "TOEIC・英検・IELTS",
-};
-
-// Practice prompt for onboarding - universal and accessible
-const PRACTICE_PROMPT = "自己紹介と、今ワクワクしていることを1つ教えてください。";
-const PRACTICE_HINT = "I'm ... / I'm excited about ... / One thing I'm looking forward to is ...";
 const PRACTICE_RECOMMENDED_WORDS = 50;
 
 export default function OnboardingPage() {
+  const { t, i18n } = useTranslation("app");
   const { user, loading, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const {
+    getGoalLabel,
+    getLevelLabel,
+    getLevelDescription,
+    getUserTypeLabel,
+    getSchoolTypeLabel,
+  } = useTypeLabels();
+  const interestOptions = useInterestOptions();
+  const occupationOptions = useOccupationOptions();
+
   const [step, setStep] = useState(1);
   const [goal, setGoal] = useState<Goal | null>(null);
   const [level, setLevel] = useState<Level | null>(null);
@@ -89,6 +92,13 @@ export default function OnboardingPage() {
   const [feedback, setFeedback] = useState<WritingFeedback | null>(null);
   const [gradingError, setGradingError] = useState<string | null>(null);
 
+  // Get grade options for current school type
+  const gradeOptions = useGradeOptions(schoolType ?? undefined);
+
+  // Practice prompt
+  const practicePrompt = t("onboarding.practice.practicePrompt");
+  const practiceHint = t("onboarding.practice.practiceHint");
+
   useEffect(() => {
     if (!loading && !user) {
       navigate("/login");
@@ -106,21 +116,24 @@ export default function OnboardingPage() {
   // Reset grade if schoolType changes and grade is out of range
   useEffect(() => {
     if (schoolType && grade) {
-      const maxGrade = GRADE_OPTIONS[schoolType].length;
+      const maxGrade = gradeOptions.length;
       if (grade > maxGrade) setGrade(null);
     }
-  }, [schoolType, grade]);
+  }, [schoolType, grade, gradeOptions]);
 
   const handleComplete = async () => {
     if (!user || !goal || !level) return;
     setSaving(true);
     try {
+      // Check if occupation is "other" (stored value is still Japanese for backward compatibility)
       const resolvedOccupation =
         userType === "working"
           ? (occupation === "その他" ? occupationCustom : occupation)
           : null;
 
       // Build profile object, excluding undefined/null values
+      // Set language based on browser language detection
+      const detectedLang = getDetectedLanguage();
       const profile: Record<string, unknown> = {
         displayName: user.displayName || "",
         email: user.email || "",
@@ -128,7 +141,8 @@ export default function OnboardingPage() {
         level,
         interests,
         targetExpressions: [],
-        explanationLang: "ja",
+        explanationLang: detectedLang === "ko" ? "ko" : "ja",
+        uiLanguage: detectedLang,
         plan: "free",
       };
 
@@ -153,8 +167,8 @@ export default function OnboardingPage() {
       if (hasCompletedWriting) {
         await saveWriting(user.uid, {
           mode: "goal",
-          prompt: PRACTICE_PROMPT,
-          promptHint: PRACTICE_HINT,
+          prompt: practicePrompt,
+          promptHint: practiceHint,
           recommendedWords: PRACTICE_RECOMMENDED_WORDS,
           userAnswer: practiceAnswer,
           feedback,
@@ -184,6 +198,7 @@ export default function OnboardingPage() {
 
     try {
       // Create a temporary profile for grading
+      const detectedLang = getDetectedLanguage();
       const tempProfile = {
         displayName: user.displayName || "",
         email: user.email || "",
@@ -191,14 +206,14 @@ export default function OnboardingPage() {
         level,
         interests,
         targetExpressions: [],
-        explanationLang: "ja" as const,
+        explanationLang: detectedLang === "ko" ? ("ko" as const) : ("ja" as const),
         plan: "free" as const,
         createdAt: new Date(),
       };
 
       const result = await callGradeWriting(
         tempProfile,
-        PRACTICE_PROMPT,
+        practicePrompt,
         practiceAnswer,
         "ja"
       );
@@ -206,7 +221,7 @@ export default function OnboardingPage() {
       setFeedback(result);
     } catch (error) {
       console.error("Grading failed:", error);
-      setGradingError("添削に失敗しました。スキップして続けることができます。");
+      setGradingError(t("onboarding.practice.gradingError"));
     } finally {
       setGrading(false);
     }
@@ -228,9 +243,9 @@ export default function OnboardingPage() {
       <div className={`w-full mx-auto space-y-8 ${showFeedbackLayout ? "max-w-xl" : "max-w-lg"}`}>
         {!showFeedbackLayout && (
           <div className="space-y-2 text-center">
-            <h1 className="font-serif text-3xl">プロフィール設定</h1>
+            <h1 className="font-serif text-3xl">{t("onboarding.pageTitle")}</h1>
             <p className="text-muted-foreground">
-              あなたに合ったお題を出すために教えてください
+              {t("onboarding.pageSubtitle")}
             </p>
           </div>
         )}
@@ -241,7 +256,7 @@ export default function OnboardingPage() {
         {step === 1 && (
           <div className="space-y-4">
             <h2 className="font-serif text-xl">
-              英語ライティングの目標は？
+              {t("onboarding.goal.title")}
             </h2>
             <div className="grid gap-3">
               {(Object.keys(GOAL_LABELS) as Goal[]).map((g) => (
@@ -265,9 +280,9 @@ export default function OnboardingPage() {
                       {GOAL_ICONS[g]}
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium">{GOAL_LABELS[g]}</p>
+                      <p className="font-medium">{getGoalLabel(g)}</p>
                       <p className="text-sm text-muted-foreground">
-                        {GOAL_DESCRIPTIONS[g]}
+                        {t(`onboarding.goalDescriptions.${g}`)}
                       </p>
                     </div>
                     {goal === g && (
@@ -282,7 +297,7 @@ export default function OnboardingPage() {
               disabled={!goal}
               className="w-full gap-2"
             >
-              次へ
+              {t("onboarding.navigation.next")}
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
@@ -293,10 +308,10 @@ export default function OnboardingPage() {
           <div className="space-y-5">
             <div>
               <h2 className="font-serif text-xl">
-                あなたについて教えてください
+                {t("onboarding.profile.title")}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                よりパーソナルなお題を出すために使われます
+                {t("onboarding.profile.subtitle")}
               </p>
             </div>
 
@@ -320,7 +335,7 @@ export default function OnboardingPage() {
                   >
                     <GraduationCap className="h-6 w-6" />
                   </div>
-                  <span className="font-medium">学生</span>
+                  <span className="font-medium">{getUserTypeLabel("student")}</span>
                 </div>
               </Card>
               <Card
@@ -341,7 +356,7 @@ export default function OnboardingPage() {
                   >
                     <Briefcase className="h-6 w-6" />
                   </div>
-                  <span className="font-medium">社会人</span>
+                  <span className="font-medium">{getUserTypeLabel("working")}</span>
                 </div>
               </Card>
             </div>
@@ -350,9 +365,9 @@ export default function OnboardingPage() {
             {userType === "student" && (
               <div className="space-y-4 rounded-lg border border-border/60 bg-card p-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">学校（任意）</label>
+                  <label className="text-sm font-medium">{t("onboarding.student.school")}</label>
                   <div className="flex flex-wrap gap-2">
-                    {(Object.keys(SCHOOL_TYPE_LABELS) as SchoolType[]).map(
+                    {(["junior_high", "high_school", "university", "graduate"] as SchoolType[]).map(
                       (st) => (
                         <button
                           key={st}
@@ -363,7 +378,7 @@ export default function OnboardingPage() {
                               : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                           }`}
                         >
-                          {SCHOOL_TYPE_LABELS[st]}
+                          {getSchoolTypeLabel(st)}
                         </button>
                       )
                     )}
@@ -372,9 +387,9 @@ export default function OnboardingPage() {
 
                 {schoolType && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">学年（任意）</label>
+                    <label className="text-sm font-medium">{t("onboarding.student.grade")}</label>
                     <div className="flex flex-wrap gap-2">
-                      {GRADE_OPTIONS[schoolType].map((opt) => (
+                      {gradeOptions.map((opt) => (
                         <button
                           key={opt.value}
                           onClick={() => setGrade(opt.value)}
@@ -393,10 +408,10 @@ export default function OnboardingPage() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">
-                    部活・サークル（任意）
+                    {t("onboarding.student.club")}
                   </label>
                   <Input
-                    placeholder="例: サッカー部"
+                    placeholder={t("onboarding.student.clubPlaceholder")}
                     value={clubActivity}
                     onChange={(e) => setClubActivity(e.target.value)}
                   />
@@ -406,10 +421,10 @@ export default function OnboardingPage() {
                   schoolType === "graduate") && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
-                      専攻・学部（任意）
+                      {t("onboarding.student.major")}
                     </label>
                     <Input
-                      placeholder="例: 情報工学"
+                      placeholder={t("onboarding.student.majorPlaceholder")}
                       value={major}
                       onChange={(e) => setMajor(e.target.value)}
                     />
@@ -422,19 +437,19 @@ export default function OnboardingPage() {
             {userType === "working" && (
               <div className="space-y-4 rounded-lg border border-border/60 bg-card p-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">職種（任意）</label>
+                  <label className="text-sm font-medium">{t("onboarding.working.occupation")}</label>
                   <div className="flex flex-wrap gap-2">
-                    {OCCUPATION_OPTIONS.map((occ) => (
+                    {occupationOptions.map((opt) => (
                       <button
-                        key={occ}
-                        onClick={() => setOccupation(occ)}
+                        key={opt.value}
+                        onClick={() => setOccupation(opt.value)}
                         className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-all ${
-                          occupation === occ
+                          occupation === opt.value
                             ? "bg-primary text-primary-foreground shadow-sm"
                             : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                         }`}
                       >
-                        {occ}
+                        {opt.label}
                       </button>
                     ))}
                   </div>
@@ -443,10 +458,10 @@ export default function OnboardingPage() {
                 {occupation === "その他" && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
-                      職種を入力してください
+                      {t("onboarding.working.occupationCustomLabel")}
                     </label>
                     <Input
-                      placeholder="例: データサイエンティスト"
+                      placeholder={t("onboarding.working.occupationCustomPlaceholder")}
                       value={occupationCustom}
                       onChange={(e) => setOccupationCustom(e.target.value)}
                     />
@@ -459,10 +474,10 @@ export default function OnboardingPage() {
             {userType && (
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  自由メモ（任意）
+                  {t("onboarding.working.personalContext")}
                 </label>
                 <Textarea
-                  placeholder="英語学習に関連する状況があれば自由に入力してください（例: 来月から海外赴任予定）"
+                  placeholder={t("onboarding.working.personalContextPlaceholder")}
                   value={personalContext}
                   onChange={(e) =>
                     setPersonalContext(e.target.value.slice(0, 200))
@@ -483,14 +498,14 @@ export default function OnboardingPage() {
                 className="gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                戻る
+                {t("onboarding.navigation.back")}
               </Button>
               <Button
                 onClick={() => setStep(3)}
                 disabled={!userType}
                 className="flex-1 gap-2"
               >
-                次へ
+                {t("onboarding.navigation.next")}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
@@ -500,7 +515,7 @@ export default function OnboardingPage() {
         {/* Step 3: Level */}
         {step === 3 && (
           <div className="space-y-4">
-            <h2 className="font-serif text-xl">現在のレベルは？</h2>
+            <h2 className="font-serif text-xl">{t("onboarding.level.title")}</h2>
 
             <div className="grid gap-3">
               {(Object.keys(LEVEL_LABELS) as Level[]).map((l) => (
@@ -521,16 +536,12 @@ export default function OnboardingPage() {
                           : "bg-secondary text-secondary-foreground"
                       }`}
                     >
-                      {l === "beginner"
-                        ? "初"
-                        : l === "intermediate"
-                          ? "中"
-                          : "上"}
+                      {t(`onboarding.levelAbbreviations.${l}`)}
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium">{LEVEL_LABELS[l]}</p>
+                      <p className="font-medium">{getLevelLabel(l)}</p>
                       <p className="text-sm text-muted-foreground">
-                        {LEVEL_DESCRIPTIONS[l]}
+                        {getLevelDescription(l)}
                       </p>
                     </div>
                     {level === l && (
@@ -543,11 +554,11 @@ export default function OnboardingPage() {
 
             <div className="space-y-2">
               <label className="text-sm text-muted-foreground">
-                TOEICスコア（任意）
+                {t("onboarding.level.toeicScore")}
               </label>
               <Input
                 type="number"
-                placeholder="例: 600"
+                placeholder={t("onboarding.level.toeicPlaceholder")}
                 value={toeicScore}
                 onChange={(e) => setToeicScore(e.target.value)}
                 min={10}
@@ -562,14 +573,14 @@ export default function OnboardingPage() {
                 className="gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                戻る
+                {t("onboarding.navigation.back")}
               </Button>
               <Button
                 onClick={() => setStep(4)}
                 disabled={!level}
                 className="flex-1 gap-2"
               >
-                次へ
+                {t("onboarding.navigation.next")}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
@@ -579,39 +590,39 @@ export default function OnboardingPage() {
         {/* Step 4: Interests */}
         {step === 4 && (
           <div className="space-y-4">
-            <h2 className="font-serif text-xl">興味・趣味を選んでください</h2>
+            <h2 className="font-serif text-xl">{t("onboarding.interests.title")}</h2>
             <p className="text-sm text-muted-foreground">
-              選んだ興味に合わせたお題を出します（複数選択可）
+              {t("onboarding.interests.subtitle")}
             </p>
 
             <div className="flex flex-wrap gap-2">
-              {INTEREST_OPTIONS.map((interest) => (
+              {interestOptions.map((opt) => (
                 <button
-                  key={interest}
-                  onClick={() => toggleInterest(interest)}
+                  key={opt.value}
+                  onClick={() => toggleInterest(opt.value)}
                   className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                    interests.includes(interest)
+                    interests.includes(opt.value)
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                   }`}
                 >
-                  {interest}
+                  {opt.label}
                 </button>
               ))}
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                好きなもの・詳しいこと（任意・最大5個）
+                {t("onboarding.interests.customInterests.label")}
               </label>
               <TagInput
                 tags={customInterests}
                 onTagsChange={setCustomInterests}
-                placeholder="キーワードを入力 → Enterで追加"
+                placeholder={t("onboarding.interests.customInterests.placeholder")}
                 maxTags={5}
               />
               <p className="text-xs text-muted-foreground">
-                お題に反映したいキーワードを追加できます
+                {t("onboarding.interests.customInterests.hint")}
               </p>
             </div>
 
@@ -622,14 +633,14 @@ export default function OnboardingPage() {
                 className="gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                戻る
+                {t("onboarding.navigation.back")}
               </Button>
               <Button
                 onClick={() => setStep(5)}
                 disabled={interests.length === 0}
                 className="flex-1 gap-2"
               >
-                次へ
+                {t("onboarding.navigation.next")}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
@@ -643,9 +654,9 @@ export default function OnboardingPage() {
               <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg">
                 <PenLine className="h-7 w-7" />
               </div>
-              <h2 className="font-serif text-xl">はじめての練習</h2>
+              <h2 className="font-serif text-xl">{t("onboarding.practice.title")}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                サービスの使い方を体験してみましょう
+                {t("onboarding.practice.subtitle")}
               </p>
             </div>
 
@@ -662,13 +673,13 @@ export default function OnboardingPage() {
                       </div>
                       <div className="space-y-2">
                         <p className="font-serif text-lg leading-relaxed">
-                          {PRACTICE_PROMPT}
+                          {practicePrompt}
                         </p>
                         <p className="text-sm italic text-muted-foreground">
-                          {PRACTICE_HINT}
+                          {practiceHint}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          推奨: {PRACTICE_RECOMMENDED_WORDS}語程度
+                          {t("onboarding.practice.recommendedWords", { count: PRACTICE_RECOMMENDED_WORDS })}
                         </p>
                       </div>
                     </div>
@@ -678,14 +689,14 @@ export default function OnboardingPage() {
                 {/* Writing Area */}
                 <div className="space-y-2">
                   <Textarea
-                    placeholder="英語で書いてみましょう..."
+                    placeholder={t("onboarding.practice.answerPlaceholder")}
                     value={practiceAnswer}
                     onChange={(e) => setPracticeAnswer(e.target.value)}
                     rows={5}
                     className="resize-none text-base leading-relaxed"
                   />
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{wordCount} 語</span>
+                    <span>{t("common.wordCount", { count: wordCount })}</span>
                     {gradingError && (
                       <span className="text-destructive">{gradingError}</span>
                     )}
@@ -700,7 +711,7 @@ export default function OnboardingPage() {
                     className="gap-2"
                   >
                     <ArrowLeft className="h-4 w-4" />
-                    戻る
+                    {t("onboarding.navigation.back")}
                   </Button>
                   <Button
                     onClick={handleSubmitPractice}
@@ -708,7 +719,7 @@ export default function OnboardingPage() {
                     className="flex-1 gap-2"
                   >
                     <Send className="h-4 w-4" />
-                    添削してもらう
+                    {t("onboarding.practice.submit")}
                   </Button>
                 </div>
 
@@ -719,7 +730,7 @@ export default function OnboardingPage() {
                   disabled={saving}
                   className={`w-full ${gradingError ? "" : "text-muted-foreground"}`}
                 >
-                  {gradingError ? "スキップして始める" : "この練習をスキップ"}
+                  {gradingError ? t("onboarding.practice.skipWithError") : t("onboarding.practice.skipPractice")}
                 </Button>
               </>
             ) : (
@@ -741,9 +752,9 @@ export default function OnboardingPage() {
                     >
                       <Trophy className="h-10 w-10" />
                     </motion.div>
-                    <h3 className="font-serif text-2xl">おめでとうございます！</h3>
+                    <h3 className="font-serif text-2xl">{t("onboarding.success.title")}</h3>
                     <p className="mt-2 text-muted-foreground">
-                      はじめてのライティングが完了しました
+                      {t("onboarding.success.message")}
                     </p>
                   </div>
 
@@ -754,10 +765,10 @@ export default function OnboardingPage() {
                         <RankBadge rank={feedback.overallRank as Rank} size="lg" />
                         <div className="flex gap-4">
                           {[
-                            { label: "文法", rank: feedback.grammarRank },
-                            { label: "語彙", rank: feedback.vocabularyRank },
-                            { label: "構成", rank: feedback.structureRank },
-                            { label: "内容", rank: feedback.contentRank },
+                            { label: t("types.skills.grammar"), rank: feedback.grammarRank },
+                            { label: t("types.skills.vocabulary"), rank: feedback.vocabularyRank },
+                            { label: t("types.skills.structure"), rank: feedback.structureRank },
+                            { label: t("types.skills.content"), rank: feedback.contentRank },
                           ].map((item) => (
                             <div key={item.label} className="text-center">
                               <p className="text-xs text-muted-foreground">{item.label}</p>
@@ -782,19 +793,19 @@ export default function OnboardingPage() {
                       <div className="flex items-center gap-2">
                         <Sparkles className="h-4 w-4 text-primary" />
                         <h4 className="font-medium">
-                          修正ポイント
+                          {t("onboarding.success.corrections")}
                           <span className="ml-2 text-sm text-muted-foreground font-normal">
-                            {feedback.improvements.length}件
+                            {t("onboarding.success.correctionsCount", { count: feedback.improvements.length })}
                           </span>
                         </h4>
                       </div>
                       <div className="space-y-2">
                         {feedback.improvements.map((imp, index) => {
-                          const typeStyles: Record<string, { bg: string; border: string; text: string; label: string }> = {
-                            grammar: { bg: "bg-rose-500/10", border: "border-rose-500/30", text: "text-rose-600 dark:text-rose-400", label: "文法" },
-                            vocabulary: { bg: "bg-amber-500/10", border: "border-amber-500/30", text: "text-amber-600 dark:text-amber-400", label: "語彙" },
-                            structure: { bg: "bg-sky-500/10", border: "border-sky-500/30", text: "text-sky-600 dark:text-sky-400", label: "構成" },
-                            content: { bg: "bg-violet-500/10", border: "border-violet-500/30", text: "text-violet-600 dark:text-violet-400", label: "内容" },
+                          const typeStyles: Record<string, { bg: string; border: string; text: string; labelKey: string }> = {
+                            grammar: { bg: "bg-rose-500/10", border: "border-rose-500/30", text: "text-rose-600 dark:text-rose-400", labelKey: "grammar" },
+                            vocabulary: { bg: "bg-amber-500/10", border: "border-amber-500/30", text: "text-amber-600 dark:text-amber-400", labelKey: "vocabulary" },
+                            structure: { bg: "bg-sky-500/10", border: "border-sky-500/30", text: "text-sky-600 dark:text-sky-400", labelKey: "structure" },
+                            content: { bg: "bg-violet-500/10", border: "border-violet-500/30", text: "text-violet-600 dark:text-violet-400", labelKey: "content" },
                           };
                           const style = typeStyles[imp.type] || typeStyles.grammar;
                           return (
@@ -807,7 +818,7 @@ export default function OnboardingPage() {
                                   variant="secondary"
                                   className={`${style.bg} ${style.text} border-0 text-xs font-medium mb-2`}
                                 >
-                                  {style.label}
+                                  {t(`types.skills.${style.labelKey}`)}
                                 </Badge>
                                 <div className="rounded-lg bg-background/80 px-3 py-2 mb-2">
                                   <p className="text-sm text-muted-foreground line-through decoration-1">
@@ -839,11 +850,11 @@ export default function OnboardingPage() {
                       {saving ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          保存中...
+                          {t("common.processing")}
                         </>
                       ) : (
                         <>
-                          学習をはじめる
+                          {t("onboarding.navigation.complete")}
                           <ArrowRight className="h-4 w-4" />
                         </>
                       )}

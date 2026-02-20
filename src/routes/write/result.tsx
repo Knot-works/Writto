@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/auth-context";
 import { useGrading } from "@/contexts/grading-context";
 import { useToken } from "@/contexts/token-context";
 import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
+import { useTypeLabels } from "@/lib/translations";
 import { getWriting } from "@/lib/firestore";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,14 +31,12 @@ import {
   Square,
   Crown,
 } from "lucide-react";
-import {
-  type Writing,
-  type Improvement,
-  MODE_LABELS,
-} from "@/types";
+import type { Writing, Improvement } from "@/types";
 
 export default function ResultPage() {
-  const { user } = useAuth();
+  const { t } = useTranslation("app");
+  const { getModeLabel } = useTypeLabels();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
@@ -89,10 +89,10 @@ export default function ResultPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-amber-900">
-                    無料枠を使い切りました
+                    {t("writing.mode.rateLimitReached")}
                   </p>
                   <p className="mt-1 text-sm text-amber-700/80">
-                    Proプランで学習を続けましょう
+                    {t("writing.mode.upgradePrompt")}
                   </p>
                 </div>
               </div>
@@ -102,7 +102,7 @@ export default function ResultPage() {
         );
         openUpgradeModal();
       } else {
-        toast.error("添削に失敗しました");
+        toast.error(t("writing.result.gradingFailed"));
       }
       resetGrading();
       navigate("/write", { replace: true });
@@ -262,13 +262,13 @@ export default function ResultPage() {
       <div className="mx-auto max-w-4xl space-y-6 px-4">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="mr-1.5 h-4 w-4" />
-          戻る
+          {t("common.back")}
         </Button>
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-12">
-            <p className="font-medium">結果が見つかりませんでした</p>
+            <p className="font-medium">{t("writing.result.notFound")}</p>
             <Button asChild>
-              <Link to="/write">新しいお題に挑戦する</Link>
+              <Link to="/write">{t("writing.result.tryNewPrompt")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -286,12 +286,12 @@ export default function ResultPage() {
         <div className="flex items-center gap-4 animate-fade-in">
           <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="mr-1.5 h-4 w-4" />
-            ホームへ
+            {t("writing.result.toHome")}
           </Button>
           <div className="ml-auto flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{MODE_LABELS[writing.mode]}</span>
+            <span>{getModeLabel(writing.mode)}</span>
             <span>・</span>
-            <span>{writing.wordCount}語</span>
+            <span>{t("common.wordCount", { count: writing.wordCount })}</span>
           </div>
           {/* Chat toggle */}
           {!chatOpen && (
@@ -301,7 +301,7 @@ export default function ResultPage() {
               onClick={() => setChatOpen(true)}
             >
               <MessageCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">質問する</span>
+              <span className="hidden sm:inline">{t("writing.result.askQuestion")}</span>
             </Button>
           )}
         </div>
@@ -321,12 +321,12 @@ export default function ResultPage() {
               {/* Ranks */}
               <div className="p-6">
                 <div className="flex flex-col items-center gap-6 sm:flex-row">
-                  <RankBadge rank={feedback.overallRank} size="lg" label="総合" />
+                  <RankBadge rank={feedback.overallRank} size="lg" label={t("writing.result.overall")} />
                   <div className="flex flex-wrap justify-center gap-3 sm:justify-start">
-                    <RankBadge rank={feedback.grammarRank} size="sm" label="文法" />
-                    <RankBadge rank={feedback.vocabularyRank} size="sm" label="語彙" />
-                    <RankBadge rank={feedback.structureRank} size="sm" label="構成" />
-                    <RankBadge rank={feedback.contentRank} size="sm" label="内容" />
+                    <RankBadge rank={feedback.grammarRank} size="sm" label={t("types.skills.grammar")} />
+                    <RankBadge rank={feedback.vocabularyRank} size="sm" label={t("types.skills.vocabulary")} />
+                    <RankBadge rank={feedback.structureRank} size="sm" label={t("types.skills.structure")} />
+                    <RankBadge rank={feedback.contentRank} size="sm" label={t("types.skills.content")} />
                   </div>
                 </div>
 
@@ -378,7 +378,7 @@ export default function ResultPage() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
               <BookOpen className="h-4 w-4 text-primary" />
             </div>
-            <h2 className="font-serif text-lg font-medium">模範解答</h2>
+            <h2 className="font-serif text-lg font-medium">{t("writing.result.modelAnswer")}</h2>
           </div>
 
           <Card className="border-primary/10 bg-gradient-to-br from-primary/[0.02] to-transparent">
@@ -399,12 +399,12 @@ export default function ResultPage() {
                   {isSpeaking ? (
                     <>
                       <Square className="h-3.5 w-3.5 text-primary" />
-                      停止
+                      {t("writing.result.stop")}
                     </>
                   ) : (
                     <>
                       <Volume2 className="h-3.5 w-3.5" />
-                      読み上げ
+                      {t("writing.result.play")}
                     </>
                   )}
                 </Button>
@@ -417,12 +417,12 @@ export default function ResultPage() {
                   {copied ? (
                     <>
                       <Check className="h-3.5 w-3.5 text-primary" />
-                      コピーしました
+                      {t("writing.result.copied")}
                     </>
                   ) : (
                     <>
                       <Copy className="h-3.5 w-3.5" />
-                      コピー
+                      {t("writing.result.copy")}
                     </>
                   )}
                 </Button>
@@ -437,7 +437,7 @@ export default function ResultPage() {
             <CardContent className="p-6">
               <div className="flex flex-col items-center gap-4 text-center">
                 <p className="text-sm text-muted-foreground">
-                  続けて練習すると効果的です
+                  {t("writing.result.continuePrompt")}
                 </p>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <Button
@@ -446,13 +446,13 @@ export default function ResultPage() {
                     onClick={() => navigate(`/write/${writing.mode}`)}
                   >
                     <PenLine className="h-4 w-4" />
-                    同じモードで練習
+                    {t("writing.result.practicesSameMode")}
                   </Button>
                   <Button
                     className="gap-2 bg-primary hover:bg-primary/90 shadow-md shadow-primary/20"
                     onClick={() => navigate("/write")}
                   >
-                    次のお題に挑戦
+                    {t("writing.result.nextChallenge")}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -489,6 +489,7 @@ export default function ResultPage() {
                 feedback: writing.feedback,
               }}
               onClose={() => setChatOpen(false)}
+              lang={profile?.uiLanguage === "ko" ? "ko" : profile?.explanationLang}
             />
           </aside>
         </>

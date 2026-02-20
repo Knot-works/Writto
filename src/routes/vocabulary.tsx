@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/auth-context";
 import { useUpgradeModal } from "@/contexts/upgrade-modal-context";
 import {
@@ -47,6 +48,7 @@ const FREE_PLAN_DECK_LIMIT = 3;  // 無料プランのデッキ数上限
 const MAX_VOCAB_PER_DECK = 200;  // 1デッキあたりの単語数上限
 
 export default function VocabularyPage() {
+  const { t } = useTranslation("app");
   const { user, profile } = useAuth();
   const { open: openUpgradeModal } = useUpgradeModal();
   const isFreePlan = profile?.plan !== "pro";
@@ -305,12 +307,12 @@ export default function VocabularyPage() {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <h1 className="font-serif text-3xl">単語帳</h1>
+            <h1 className="font-serif text-3xl">{t("vocabulary.title")}</h1>
             <p className="text-muted-foreground">
-              学習した単語や表現をまとめて管理
+              {t("vocabulary.subtitle")}
               {isFreePlan && (
                 <span className="ml-2 text-sm">
-                  （{totalVocabCount}/{FREE_PLAN_VOCAB_LIMIT}件）
+                  （{totalVocabCount}/{FREE_PLAN_VOCAB_LIMIT}{t("vocabulary.items")}）
                 </span>
               )}
             </p>
@@ -322,7 +324,7 @@ export default function VocabularyPage() {
               onClick={() => setDictionaryOpen(!dictionaryOpen)}
             >
               <Languages className="h-4 w-4" />
-              <span className="hidden sm:inline">辞書検索</span>
+              <span className="hidden sm:inline">{t("vocabulary.actions.search")}</span>
             </Button>
             <Button
               variant="outline"
@@ -331,7 +333,7 @@ export default function VocabularyPage() {
               disabled={isAtLimit}
             >
               <Wand2 className="h-4 w-4" />
-              <span className="hidden sm:inline">AI生成</span>
+              <span className="hidden sm:inline">{t("vocabulary.actions.generate")}</span>
             </Button>
             <Button
               asChild
@@ -341,7 +343,7 @@ export default function VocabularyPage() {
             >
               <Link to="/vocabulary/quiz">
                 <Sparkles className="h-4 w-4" />
-                <span className="hidden sm:inline">クイズ</span>
+                <span className="hidden sm:inline">{t("vocabulary.actions.quiz")}</span>
               </Link>
             </Button>
             <Button
@@ -350,7 +352,7 @@ export default function VocabularyPage() {
               disabled={isAtLimit}
             >
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">追加</span>
+              <span className="hidden sm:inline">{t("vocabulary.actions.add")}</span>
             </Button>
           </div>
         </div>
@@ -367,7 +369,7 @@ export default function VocabularyPage() {
           />
           {selectedDeckId && (
             <p className="text-sm text-muted-foreground">
-              {decks.find((d) => d.id === selectedDeckId)?.description || "AIで生成されたデッキ"}
+              {decks.find((d) => d.id === selectedDeckId)?.description || t("vocabulary.deckSelector.aiDecks")}
             </p>
           )}
         </div>
@@ -379,11 +381,10 @@ export default function VocabularyPage() {
               <Info className={`h-5 w-5 shrink-0 ${isAtLimit ? "text-red-600 dark:text-red-500" : "text-amber-600 dark:text-amber-500"}`} />
               <div className="flex-1">
                 <p className={`text-sm ${isAtLimit ? "text-red-800 dark:text-red-200" : "text-amber-800 dark:text-amber-200"}`}>
-                  {isAtLimit ? (
-                    <>無料プランの上限（{FREE_PLAN_VOCAB_LIMIT}件）に達しました</>
-                  ) : (
-                    <>無料プランでは{FREE_PLAN_VOCAB_LIMIT}件まで登録できます（残り{remainingSlots}件）</>
-                  )}
+                  {isAtLimit
+                    ? t("vocabulary.freePlanBanner.reachedLimit", { limit: FREE_PLAN_VOCAB_LIMIT })
+                    : t("vocabulary.freePlanBanner.limit", { limit: FREE_PLAN_VOCAB_LIMIT, remaining: remainingSlots })
+                  }
                 </p>
               </div>
               <Button
@@ -393,7 +394,7 @@ export default function VocabularyPage() {
                 onClick={openUpgradeModal}
               >
                 <Crown className="h-3.5 w-3.5" />
-                Proで無制限に
+                {t("vocabulary.freePlanBanner.upgradeLink")}
               </Button>
             </CardContent>
           </Card>
@@ -407,7 +408,7 @@ export default function VocabularyPage() {
                 <BookOpen className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">単語</p>
+                <p className="text-sm text-muted-foreground">{t("vocabulary.stats.words")}</p>
                 <p className="font-serif text-xl font-bold">{wordCount}</p>
               </div>
             </CardContent>
@@ -418,7 +419,7 @@ export default function VocabularyPage() {
                 <MessageSquareText className="h-5 w-5 text-accent" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">表現</p>
+                <p className="text-sm text-muted-foreground">{t("vocabulary.stats.expressions")}</p>
                 <p className="font-serif text-xl font-bold">{expressionCount}</p>
               </div>
             </CardContent>
@@ -430,7 +431,7 @@ export default function VocabularyPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">
-                  {selectedDeckId ? "デッキ内" : "My単語帳"}
+                  {selectedDeckId ? t("vocabulary.stats.inDeck") : t("vocabulary.stats.myVocab")}
                 </p>
                 <p className="font-serif text-xl font-bold">{entries.length}</p>
               </div>
@@ -443,7 +444,7 @@ export default function VocabularyPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="単語や表現を検索..."
+              placeholder={t("vocabulary.search.placeholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -465,10 +466,10 @@ export default function VocabularyPage() {
             }
           >
             <TabsList>
-              <TabsTrigger value="all">すべて ({entries.length})</TabsTrigger>
-              <TabsTrigger value="word">単語 ({wordCount})</TabsTrigger>
+              <TabsTrigger value="all">{t("vocabulary.tabs.all", { count: entries.length })}</TabsTrigger>
+              <TabsTrigger value="word">{t("vocabulary.tabs.words", { count: wordCount })}</TabsTrigger>
               <TabsTrigger value="expression">
-                表現 ({expressionCount})
+                {t("vocabulary.tabs.expressions", { count: expressionCount })}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -482,21 +483,21 @@ export default function VocabularyPage() {
               <div className="text-center">
                 <p className="font-medium">
                   {searchQuery
-                    ? "該当する単語・表現が見つかりません"
+                    ? t("vocabulary.emptySearch.title")
                     : selectedDeckId
-                    ? "このデッキは空です"
-                    : "まだ単語・表現が登録されていません"}
+                    ? t("vocabulary.emptyDeck")
+                    : t("vocabulary.empty.title")}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {searchQuery
-                    ? "検索条件を変更してください"
-                    : "単語を追加してみましょう"}
+                    ? t("vocabulary.emptySearch.description")
+                    : t("vocabulary.empty.description")}
                 </p>
               </div>
               {!searchQuery && (
                 <Button onClick={() => setDialogOpen(true)} className="gap-2">
                   <Plus className="h-4 w-4" />
-                  最初の単語を追加
+                  {t("vocabulary.empty.addFirst")}
                 </Button>
               )}
             </CardContent>
@@ -520,7 +521,7 @@ export default function VocabularyPage() {
                               : "bg-accent/10 text-accent border-accent/20"
                           }
                         >
-                          {entry.type === "word" ? "単語" : "表現"}
+                          {entry.type === "word" ? t("vocabulary.badges.word") : t("vocabulary.badges.expression")}
                         </Badge>
                         <span className="font-medium font-mono">
                           {entry.term}
@@ -536,7 +537,7 @@ export default function VocabularyPage() {
                       )}
                       {entry.source && (
                         <p className="text-xs text-muted-foreground/50">
-                          出典: {entry.source}
+                          {t("vocabulary.source")}: {entry.source}
                         </p>
                       )}
                     </div>
@@ -559,7 +560,7 @@ export default function VocabularyPage() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle className="font-serif">単語・表現を追加</DialogTitle>
+              <DialogTitle className="font-serif">{t("vocabulary.addDialog.title")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="flex gap-2">
@@ -568,19 +569,19 @@ export default function VocabularyPage() {
                   size="sm"
                   onClick={() => setVocabType("word")}
                 >
-                  単語
+                  {t("vocabulary.addDialog.typeWord")}
                 </Button>
                 <Button
                   variant={vocabType === "expression" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setVocabType("expression")}
                 >
-                  表現
+                  {t("vocabulary.addDialog.typeExpression")}
                 </Button>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  {vocabType === "word" ? "単語" : "表現"}
+                  {vocabType === "word" ? t("vocabulary.addDialog.typeWord") : t("vocabulary.addDialog.typeExpression")}
                 </label>
                 <Input
                   value={vocabTerm}
@@ -593,31 +594,31 @@ export default function VocabularyPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">意味・解説</label>
+                <label className="text-sm font-medium">{t("vocabulary.addDialog.meaning")}</label>
                 <Input
                   value={vocabMeaning}
                   onChange={(e) => setVocabMeaning(e.target.value)}
-                  placeholder="日本語で意味や使い方を記入"
+                  placeholder={t("vocabulary.addDialog.meaningPlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">例文（任意）</label>
+                <label className="text-sm font-medium">{t("vocabulary.addDialog.example")}</label>
                 <Textarea
                   value={vocabExample}
                   onChange={(e) => setVocabExample(e.target.value)}
-                  placeholder="例文を入力"
+                  placeholder={t("vocabulary.addDialog.examplePlaceholder")}
                   rows={3}
                 />
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                  キャンセル
+                  {t("vocabulary.addDialog.cancel")}
                 </Button>
                 <Button
                   onClick={handleAdd}
                   disabled={!vocabTerm.trim() || saving}
                 >
-                  {saving ? "保存中..." : "登録する"}
+                  {saving ? t("common.processing") : t("vocabulary.addDialog.submit")}
                 </Button>
               </div>
             </div>
@@ -665,7 +666,7 @@ export default function VocabularyPage() {
           >
             <DictionaryPanel
               onClose={handleCloseDictionary}
-              emptyMessage="単語や表現を検索して単語帳に追加できます"
+              emptyMessage={t("vocabulary.dictionaryEmptyMessage")}
             />
           </aside>
         </>

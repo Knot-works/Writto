@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/auth-context";
 import { getWritings, getUserStats, getDailyPromptsFromCache } from "@/lib/firestore";
 import { callGetDailyPrompts, type DailyPrompts } from "@/lib/functions";
 import { calculateWritingSkillScore } from "@/lib/score";
+import { useTypeLabels } from "@/lib/translations";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,14 +22,16 @@ import {
   Eye,
   MessageSquare,
 } from "lucide-react";
-import { type Writing, type UserStats, type WritingMode, MODE_LABELS } from "@/types";
+import type { Writing, UserStats, WritingMode } from "@/types";
 
-const DAILY_MODES: { key: keyof DailyPrompts; mode: WritingMode; label: string }[] = [
-  { key: "goal", mode: "goal", label: "目標特化" },
-  { key: "hobby", mode: "hobby", label: "趣味・興味" },
+const DAILY_MODE_KEYS: { key: keyof DailyPrompts; mode: WritingMode }[] = [
+  { key: "goal", mode: "goal" },
+  { key: "hobby", mode: "hobby" },
 ];
 
 export default function DashboardPage() {
+  const { t } = useTranslation("app");
+  const { getModeLabel } = useTypeLabels();
   const { user, profile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [writings, setWritings] = useState<Writing[]>([]);
@@ -90,16 +94,17 @@ export default function DashboardPage() {
   }, [allWritings, stats?.currentStreak]);
 
   useEffect(() => {
-    if (user && !dailyPrompts && !promptLoading) {
+    if (user && profile && !dailyPrompts && !promptLoading) {
       setPromptLoading(true);
+      const lang = profile.uiLanguage ?? "ja";
       // Try Firestore cache first (free), then Cloud Function (generates if needed)
-      getDailyPromptsFromCache()
+      getDailyPromptsFromCache(lang)
         .then((cached) => {
           if (cached) {
             setDailyPrompts(cached);
             setPromptLoading(false);
           } else {
-            return callGetDailyPrompts().then((result) => {
+            return callGetDailyPrompts(lang).then((result) => {
               setDailyPrompts(result);
               setPromptLoading(false);
             });
@@ -110,7 +115,7 @@ export default function DashboardPage() {
           setPromptLoading(false);
         });
     }
-  }, [user, dailyPrompts, promptLoading]);
+  }, [user, profile, dailyPrompts, promptLoading]);
 
   if (loading) {
     return (
@@ -126,7 +131,7 @@ export default function DashboardPage() {
       {/* Welcome Section */}
       <div className="space-y-1">
         <h1 className="font-serif text-3xl">
-          おかえりなさい、{profile?.displayName?.split(" ")[0]}さん
+          {t("dashboard.welcome", { name: profile?.displayName?.split(" ")[0] })}
         </h1>
       </div>
 
@@ -137,15 +142,15 @@ export default function DashboardPage() {
             <UserCircle className="h-5 w-5 shrink-0 text-primary" />
             <div className="flex-1">
               <p className="text-sm font-medium">
-                プロフィールをもっと教えてください
+                {t("dashboard.profileBanner.title")}
               </p>
               <p className="text-xs text-muted-foreground">
-                職業や学校の情報を追加すると、より身近なお題が出せます
+                {t("dashboard.profileBanner.description")}
               </p>
             </div>
             <Link to="/settings">
               <Button size="sm" variant="outline">
-                設定へ
+                {t("navigation.settings")}
               </Button>
             </Link>
           </CardContent>
@@ -166,10 +171,10 @@ export default function DashboardPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary sm:hidden" />
-                  <p className="text-sm font-medium text-primary">今日のお題</p>
+                  <p className="text-sm font-medium text-primary">{t("dashboard.dailyPrompt.title")}</p>
                 </div>
                 <div className="relative flex gap-1 rounded-lg bg-muted/60 p-0.5 self-start">
-                  {DAILY_MODES.map(({ key, label }) => (
+                  {DAILY_MODE_KEYS.map(({ key, mode }) => (
                     <button
                       key={key}
                       onClick={() => setActiveTab(key)}
@@ -187,7 +192,7 @@ export default function DashboardPage() {
                           transition={{ type: "spring", stiffness: 500, damping: 30 }}
                         />
                       )}
-                      {label}
+                      {getModeLabel(mode)}
                     </button>
                   ))}
                 </div>
@@ -195,7 +200,7 @@ export default function DashboardPage() {
               {promptLoading ? (
                 <div className="flex items-center gap-2 py-2 text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>お題を読み込み中...</span>
+                  <span>{t("dashboard.dailyPrompt.loading")}</span>
                 </div>
               ) : dailyPrompts ? (
                 <>
@@ -204,7 +209,7 @@ export default function DashboardPage() {
                   </p>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                     <Badge variant="secondary" className="font-normal">
-                      推奨: {dailyPrompts[activeTab].recommendedWords}語
+                      {t("dashboard.dailyPrompt.recommendedWords", { count: dailyPrompts[activeTab].recommendedWords })}
                     </Badge>
                     {dailyPrompts[activeTab].hint && (
                       <span className="text-sm italic text-muted-foreground">
@@ -215,21 +220,21 @@ export default function DashboardPage() {
                 </>
               ) : (
                 <p className="text-muted-foreground">
-                  お題を取得できませんでした。ライティング画面から始めてみましょう。
+                  {t("dashboard.dailyPrompt.error")}
                 </p>
               )}
               <div className="flex flex-wrap gap-2 sm:gap-3">
                 <Link
-                  to={`/write/${DAILY_MODES.find((m) => m.key === activeTab)!.mode}`}
+                  to={`/write/${DAILY_MODE_KEYS.find((m) => m.key === activeTab)!.mode}`}
                   state={dailyPrompts ? { dailyPrompt: dailyPrompts[activeTab] } : undefined}
                 >
                   <Button className="gap-2">
                     <PenLine className="h-4 w-4" />
-                    この問題を解く
+                    {t("dashboard.actions.startSameMode")}
                   </Button>
                 </Link>
                 <Link to="/write">
-                  <Button variant="outline">別のモードを選ぶ</Button>
+                  <Button variant="outline">{t("dashboard.modes.selectAnother")}</Button>
                 </Link>
               </div>
             </div>
@@ -240,9 +245,9 @@ export default function DashboardPage() {
       {/* Recent Writings */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-serif text-xl">最近の学習</h2>
+          <h2 className="font-serif text-xl">{t("dashboard.recentLearning.title")}</h2>
           <Link to="/history">
-            <Button variant="ghost" size="sm">すべて見る</Button>
+            <Button variant="ghost" size="sm">{t("dashboard.recentLearning.viewAll")}</Button>
           </Link>
         </div>
 
@@ -251,13 +256,13 @@ export default function DashboardPage() {
             <CardContent className="flex flex-col items-center gap-4 py-12">
               <PenLine className="h-12 w-12 text-muted-foreground/30" />
               <div className="text-center">
-                <p className="font-medium">まだ学習記録がありません</p>
+                <p className="font-medium">{t("dashboard.recentLearning.empty")}</p>
                 <p className="text-sm text-muted-foreground">
-                  最初のお題に挑戦してみましょう
+                  {t("dashboard.recentLearning.emptyDescription")}
                 </p>
               </div>
               <Link to="/write">
-                <Button>ライティングを始める</Button>
+                <Button>{t("dashboard.recentLearning.startWriting")}</Button>
               </Link>
             </CardContent>
           </Card>
@@ -270,8 +275,8 @@ export default function DashboardPage() {
                   <div className="flex-1 min-w-0">
                     <p className="truncate font-medium">{w.prompt}</p>
                     <p className="text-sm text-muted-foreground">
-                      {MODE_LABELS[w.mode]} ・{" "}
-                      {w.createdAt.toLocaleDateString("ja-JP")}
+                      {getModeLabel(w.mode)} ・{" "}
+                      {w.createdAt.toLocaleDateString(profile?.uiLanguage === "ko" ? "ko-KR" : "ja-JP")}
                     </p>
                   </div>
                   <div className="relative flex gap-1">
@@ -287,7 +292,7 @@ export default function DashboardPage() {
                         >
                           <div className="relative rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-lg">
                             <Sparkles className="inline h-3.5 w-3.5 mr-1.5" />
-                            先ほどの結果を詳しく見てみましょう！
+                            {t("dashboard.firstWritingTooltip")}
                             {/* Arrow */}
                             <div className="absolute -bottom-2 right-6 h-0 w-0 border-l-[8px] border-r-[8px] border-t-[8px] border-l-transparent border-r-transparent border-t-primary" />
                           </div>
@@ -297,13 +302,13 @@ export default function DashboardPage() {
                     <Link to={`/write/result/${w.id}`}>
                       <Button variant="ghost" size="sm" className="gap-1.5">
                         <Eye className="h-3.5 w-3.5" />
-                        結果
+                        {t("dashboard.actions.viewResult")}
                       </Button>
                     </Link>
                     <Link to={`/write/${w.mode}`}>
                       <Button variant="ghost" size="sm" className="gap-1.5">
                         <RefreshCw className="h-3.5 w-3.5" />
-                        再挑戦
+                        {t("dashboard.actions.retry")}
                       </Button>
                     </Link>
                   </div>

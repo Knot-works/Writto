@@ -460,9 +460,11 @@ function getTodayJST(): string {
   return new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10);
 }
 
-export async function getDailyPromptsFromCache(): Promise<DailyPrompts | null> {
+export async function getDailyPromptsFromCache(lang: "ja" | "ko" = "ja"): Promise<DailyPrompts | null> {
   const dateStr = getTodayJST();
-  const snap = await getDoc(doc(db, "dailyPrompts", dateStr));
+  // Cache key includes language to support multiple languages
+  const cacheKey = `${dateStr}_${lang}`;
+  const snap = await getDoc(doc(db, "dailyPrompts", cacheKey));
   if (!snap.exists()) return null;
   const data = snap.data();
   return {

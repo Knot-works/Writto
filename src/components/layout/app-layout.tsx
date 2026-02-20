@@ -1,11 +1,15 @@
 import { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
+import { useLanguageSync } from "@/hooks/use-language";
 import { Header } from "./header";
 
 export function AppLayout() {
   const { user, profile, loading, profileLoaded } = useAuth();
   const navigate = useNavigate();
+
+  // Sync i18n language with user's profile preference
+  useLanguageSync();
 
   useEffect(() => {
     // Wait for both auth and profile to be fully loaded before redirecting

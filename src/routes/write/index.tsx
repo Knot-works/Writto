@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTypeLabels } from "@/lib/translations";
 import {
   Target,
   Heart,
@@ -12,97 +14,69 @@ import {
   User,
   BookOpen,
 } from "lucide-react";
-import { type WritingMode, MODE_LABELS } from "@/types";
+import type { WritingMode } from "@/types";
 
 interface ModeOption {
   mode: WritingMode;
   icon: React.ReactNode;
-  description: string;
-  wordRange: string;
   color: string;
 }
 
 interface ModeCategory {
-  title: string;
-  description: string;
+  key: "personalized" | "topicBased" | "custom";
   icon: React.ReactNode;
   modes: ModeOption[];
 }
 
-const categories: ModeCategory[] = [
+const MODE_ICONS: Record<WritingMode, React.ReactNode> = {
+  goal: <Target className="h-6 w-6" />,
+  hobby: <Heart className="h-6 w-6" />,
+  business: <Briefcase className="h-6 w-6" />,
+  daily: <Coffee className="h-6 w-6" />,
+  social: <Globe className="h-6 w-6" />,
+  expression: <MessageSquareText className="h-6 w-6" />,
+  custom: <PencilRuler className="h-6 w-6" />,
+};
+
+const MODE_COLORS: Record<WritingMode, string> = {
+  goal: "from-blue-500 to-cyan-500",
+  hobby: "from-pink-500 to-rose-500",
+  business: "from-slate-600 to-slate-800",
+  daily: "from-amber-500 to-orange-500",
+  social: "from-emerald-500 to-teal-500",
+  expression: "from-violet-500 to-purple-500",
+  custom: "from-gray-500 to-gray-700",
+};
+
+const categoryData: ModeCategory[] = [
   {
-    title: "パーソナライズ",
-    description: "あなたに合わせたお題",
+    key: "personalized",
     icon: <User className="h-4 w-4" />,
     modes: [
-      {
-        mode: "goal",
-        icon: <Target className="h-6 w-6" />,
-        description: "あなたの目標に合わせたお題をAIが出題",
-        wordRange: "80〜120語",
-        color: "from-blue-500 to-cyan-500",
-      },
-      {
-        mode: "hobby",
-        icon: <Heart className="h-6 w-6" />,
-        description: "趣味・興味に基づいたお題で楽しく練習",
-        wordRange: "60〜100語",
-        color: "from-pink-500 to-rose-500",
-      },
+      { mode: "goal", icon: MODE_ICONS.goal, color: MODE_COLORS.goal },
+      { mode: "hobby", icon: MODE_ICONS.hobby, color: MODE_COLORS.hobby },
     ],
   },
   {
-    title: "トピック別",
-    description: "シーン・場面で選ぶ",
+    key: "topicBased",
     icon: <BookOpen className="h-4 w-4" />,
     modes: [
-      {
-        mode: "business",
-        icon: <Briefcase className="h-6 w-6" />,
-        description: "会議、報告、提案などビジネスシーンの実践練習",
-        wordRange: "150〜250語",
-        color: "from-slate-600 to-slate-800",
-      },
-      {
-        mode: "daily",
-        icon: <Coffee className="h-6 w-6" />,
-        description: "日常会話、旅行、買い物など身近なトピック",
-        wordRange: "80〜120語",
-        color: "from-amber-500 to-orange-500",
-      },
-      {
-        mode: "social",
-        icon: <Globe className="h-6 w-6" />,
-        description: "環境、教育、テクノロジーなど社会的なテーマ",
-        wordRange: "200〜300語",
-        color: "from-emerald-500 to-teal-500",
-      },
+      { mode: "business", icon: MODE_ICONS.business, color: MODE_COLORS.business },
+      { mode: "daily", icon: MODE_ICONS.daily, color: MODE_COLORS.daily },
+      { mode: "social", icon: MODE_ICONS.social, color: MODE_COLORS.social },
     ],
   },
   {
-    title: "カスタム",
-    description: "自分で決める",
+    key: "custom",
     icon: <Sparkles className="h-4 w-4" />,
     modes: [
-      {
-        mode: "expression",
-        icon: <MessageSquareText className="h-6 w-6" />,
-        description: "学びたい表現を指定してピンポイント練習",
-        wordRange: "60〜80語",
-        color: "from-violet-500 to-purple-500",
-      },
-      {
-        mode: "custom",
-        icon: <PencilRuler className="h-6 w-6" />,
-        description: "キーワードを入力するとAIがお題を作成",
-        wordRange: "自由",
-        color: "from-gray-500 to-gray-700",
-      },
+      { mode: "expression", icon: MODE_ICONS.expression, color: MODE_COLORS.expression },
+      { mode: "custom", icon: MODE_ICONS.custom, color: MODE_COLORS.custom },
     ],
   },
 ];
 
-function ModeCard({ mode, icon, description, wordRange, color }: ModeOption) {
+function ModeCard({ mode, icon, color, t, getModeLabel }: ModeOption & { t: (key: string) => string; getModeLabel: (mode: WritingMode) => string }) {
   return (
     <Link to={`/write/${mode}`}>
       <Card className="group relative h-full overflow-hidden cursor-pointer border-border/50 hover:border-primary/30 transition-[border-color,box-shadow,transform] duration-300 ease-out hover:shadow-md hover:-translate-y-0.5">
@@ -123,14 +97,14 @@ function ModeCard({ mode, icon, description, wordRange, color }: ModeOption) {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <h3 className="font-serif text-lg font-medium">
-                {MODE_LABELS[mode]}
+                {getModeLabel(mode)}
               </h3>
               <span className="text-xs font-medium text-muted-foreground bg-muted/50 px-2.5 py-0.5 rounded-full">
-                {wordRange}
+                {t(`writing.modeSelection.modes.${mode}.wordCount`)}
               </span>
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              {description}
+              {t(`writing.modeSelection.modes.${mode}.description`)}
             </p>
           </div>
         </CardContent>
@@ -140,28 +114,31 @@ function ModeCard({ mode, icon, description, wordRange, color }: ModeOption) {
 }
 
 export default function WriteModePage() {
+  const { t } = useTranslation("app");
+  const { getModeLabel } = useTypeLabels();
+
   return (
     <div className="space-y-10">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="font-serif text-3xl font-medium">ライティングモード</h1>
+        <h1 className="font-serif text-3xl font-medium">{t("writing.modeSelection.title")}</h1>
         <p className="text-muted-foreground">
-          練習スタイルを選んで英作文を始めましょう
+          {t("writing.modeSelection.subtitle")}
         </p>
       </div>
 
       {/* Categories */}
-      {categories.map((category) => (
-        <section key={category.title} className="space-y-4">
+      {categoryData.map((category) => (
+        <section key={category.key} className="space-y-4">
           {/* Category Header */}
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted text-muted-foreground">
               {category.icon}
             </div>
             <div>
-              <h2 className="font-medium text-base">{category.title}</h2>
+              <h2 className="font-medium text-base">{t(`writing.modeSelection.categories.${category.key}`)}</h2>
               <p className="text-xs text-muted-foreground">
-                {category.description}
+                {t(`writing.modeSelection.categories.${category.key}Description`)}
               </p>
             </div>
           </div>
@@ -173,7 +150,7 @@ export default function WriteModePage() {
               : "sm:grid-cols-2 lg:grid-cols-3"
           }`}>
             {category.modes.map((m) => (
-              <ModeCard key={m.mode} {...m} />
+              <ModeCard key={m.mode} {...m} t={t} getModeLabel={getModeLabel} />
             ))}
           </div>
         </section>

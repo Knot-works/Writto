@@ -5,6 +5,7 @@ import { TokenProvider } from "@/contexts/token-context";
 import { UpgradeModalProvider } from "@/contexts/upgrade-modal-context";
 import { GradingProvider } from "@/contexts/grading-context";
 import { ScrollToTop } from "@/components/scroll-to-top";
+import { LanguageRedirect } from "@/components/language-redirect";
 import { Toaster } from "@/components/ui/sonner";
 
 export function RootLayout() {
@@ -22,6 +23,7 @@ export function RootLayout() {
         <UpgradeModalProvider>
           <GradingProvider>
             <ScrollToTop />
+            <LanguageRedirect />
             <Outlet />
             <Toaster />
           </GradingProvider>

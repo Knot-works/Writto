@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/auth-context";
 import { useToken } from "@/contexts/token-context";
 import { updateUserProfile } from "@/lib/firestore";
@@ -45,17 +46,20 @@ import {
   type Goal,
   type Level,
   type ExplanationLang,
+  type UILanguage,
   type UserType,
   type SchoolType,
-  GOAL_LABELS,
-  LEVEL_LABELS,
-  INTEREST_OPTIONS,
-  SCHOOL_TYPE_LABELS,
-  GRADE_OPTIONS,
-  OCCUPATION_OPTIONS,
+  UI_LANGUAGE_LABELS,
 } from "@/types";
+import {
+  useTypeLabels,
+  useInterestOptions,
+  useOccupationOptions,
+  useGradeOptions,
+} from "@/lib/translations";
 
 function SubscriptionManagement() {
+  const { t, i18n } = useTranslation("app");
   const [loading, setLoading] = useState(false);
   const [subscriptionDetails, setSubscriptionDetails] = useState<SubscriptionDetails | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(true);
@@ -83,7 +87,7 @@ function SubscriptionManagement() {
       }
     } catch (error) {
       console.error("Portal error:", error);
-      alert("サブスクリプション管理ページを開けませんでした。");
+      alert(t("settings.subscription.portalError"));
     } finally {
       setLoading(false);
     }
@@ -91,7 +95,8 @@ function SubscriptionManagement() {
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
-    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+    const locale = i18n.language === "ko" ? "ko-KR" : "ja-JP";
+    return date.toLocaleDateString(locale, { year: "numeric", month: "long", day: "numeric" });
   };
 
   return (
@@ -100,30 +105,29 @@ function SubscriptionManagement() {
       {loadingDetails ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          サブスクリプション情報を読み込み中...
+          {t("settings.subscription.loading")}
         </div>
       ) : subscriptionDetails ? (
         <div className="rounded-lg border border-border/50 bg-muted/30 p-4 space-y-3">
           <div className="flex items-center gap-2 text-sm">
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">
-              {subscriptionDetails.billingCycle === "yearly" ? "年額プラン" : "月額プラン"}
+              {subscriptionDetails.billingCycle === "yearly" ? t("settings.subscription.yearly") : t("settings.subscription.monthly")}
             </span>
           </div>
 
           {subscriptionDetails.cancelAtPeriodEnd ? (
             <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
               <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
-                解約予約済み
+                {t("settings.subscription.cancelScheduled")}
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                {formatDate(subscriptionDetails.currentPeriodEnd)}まで引き続きご利用いただけます。
-                その後、自動的に無料プランに移行します。
+                {t("settings.subscription.cancelNote", { date: formatDate(subscriptionDetails.currentPeriodEnd) })}
               </p>
             </div>
           ) : (
             <div className="text-sm">
-              <span className="text-muted-foreground">次回更新日: </span>
+              <span className="text-muted-foreground">{t("settings.subscription.nextRenewal")} </span>
               <span className="font-medium">{formatDate(subscriptionDetails.currentPeriodEnd)}</span>
             </div>
           )}
@@ -144,11 +148,11 @@ function SubscriptionManagement() {
           ) : (
             <CreditCard className="h-4 w-4" />
           )}
-          サブスクリプションを管理
+          {t("settings.subscription.manage")}
           <ExternalLink className="h-3 w-3" />
         </Button>
         <p className="mt-2 text-xs text-muted-foreground">
-          支払い方法の変更・プラン解約はこちらから
+          {t("settings.subscription.manageLink")}
         </p>
       </div>
     </div>
@@ -157,8 +161,12 @@ function SubscriptionManagement() {
 
 export default function SettingsPage() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation("app");
   const { user, profile, refreshProfile, signOut } = useAuth();
   const { tokenUsage, loading: loadingTokens } = useToken();
+  const { getGoalLabel, getLevelLabel, getSchoolTypeLabel } = useTypeLabels();
+  const interestOptions = useInterestOptions();
+  const occupationOptions = useOccupationOptions();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -180,12 +188,16 @@ export default function SettingsPage() {
   const [explanationLang, setExplanationLang] = useState<ExplanationLang>(
     profile?.explanationLang || "ja"
   );
+  const [uiLanguage, setUiLanguage] = useState<UILanguage>(
+    profile?.uiLanguage || "ja"
+  );
   const [userType, setUserType] = useState<UserType | undefined>(
     profile?.userType
   );
   const [schoolType, setSchoolType] = useState<SchoolType | undefined>(
     profile?.schoolType
   );
+  const gradeOptions = useGradeOptions(schoolType);
   const [grade, setGrade] = useState<number | undefined>(profile?.grade);
   const [clubActivity, setClubActivity] = useState(
     profile?.clubActivity || ""
@@ -196,13 +208,23 @@ export default function SettingsPage() {
     profile?.personalContext || ""
   );
 
+  // Handle UI language change - sync explanation language if it was native
+  const handleUiLanguageChange = (newUiLang: UILanguage) => {
+    // If explanation language was the native language, switch to new native language
+    // If it was English, keep it as English
+    if (explanationLang !== "en") {
+      setExplanationLang(newUiLang);
+    }
+    setUiLanguage(newUiLang);
+  };
+
   // Reset grade when school type changes
   useEffect(() => {
-    if (schoolType && grade) {
-      const maxGrade = GRADE_OPTIONS[schoolType].length;
+    if (schoolType && grade && gradeOptions.length > 0) {
+      const maxGrade = gradeOptions.length;
       if (grade > maxGrade) setGrade(undefined);
     }
-  }, [schoolType, grade]);
+  }, [schoolType, grade, gradeOptions]);
 
   const toggleInterest = (interest: string) => {
     setInterests((prev) =>
@@ -222,6 +244,7 @@ export default function SettingsPage() {
         toeicScore: toeicScore ? parseInt(toeicScore) : undefined,
         interests,
         explanationLang,
+        uiLanguage,
         userType: userType || undefined,
         schoolType: userType === "student" ? schoolType : undefined,
         grade: userType === "student" ? grade : undefined,
@@ -232,6 +255,10 @@ export default function SettingsPage() {
         personalContext: personalContext || undefined,
         customInterests: customInterests.length > 0 ? customInterests : undefined,
       });
+      // Update i18n language if changed
+      if (i18n.language !== uiLanguage) {
+        void i18n.changeLanguage(uiLanguage);
+      }
       await refreshProfile();
       Analytics.profileSetup({ userType, goal, level });
       setSaved(true);
@@ -254,7 +281,7 @@ export default function SettingsPage() {
       navigate("/");
     } catch (error) {
       console.error("Delete account error:", error);
-      setDeleteError("アカウントの削除に失敗しました。再度お試しください。");
+      setDeleteError(t("settings.danger.deleteFailed"));
       setDeleting(false);
     }
   };
@@ -262,9 +289,9 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="space-y-1">
-        <h1 className="font-serif text-3xl">設定</h1>
+        <h1 className="font-serif text-3xl">{t("settings.title")}</h1>
         <p className="text-muted-foreground">
-          学習プロフィールと環境設定
+          {t("settings.subtitle")}
         </p>
       </div>
 
@@ -273,7 +300,7 @@ export default function SettingsPage() {
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-primary" />
-            <h2 className="font-serif text-lg font-medium">アカウント</h2>
+            <h2 className="font-serif text-lg font-medium">{t("settings.account")}</h2>
           </div>
           <Separator />
           <div className="flex items-center gap-4">
@@ -292,7 +319,7 @@ export default function SettingsPage() {
                   className="gap-1"
                 >
                   {profile?.plan === "pro" && <Crown className="h-3 w-3" />}
-                  {profile?.plan === "pro" ? "Pro" : "無料プラン"}
+                  {profile?.plan === "pro" ? "Pro" : t("header.freePlan")}
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -311,7 +338,7 @@ export default function SettingsPage() {
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center gap-2">
             <Coins className="h-4 w-4 text-primary" />
-            <h2 className="font-serif text-lg font-medium">トークン使用量</h2>
+            <h2 className="font-serif text-lg font-medium">{t("settings.tokenUsage.title")}</h2>
           </div>
           <Separator />
 
@@ -320,7 +347,7 @@ export default function SettingsPage() {
               {/* Usage Progress */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">今月の使用量</span>
+                  <span className="text-muted-foreground">{t("settings.tokenUsage.monthlyUsage")}</span>
                   <span className="font-medium tabular-nums">
                     {formatTokens(tokenUsage.tokensUsed)} / {formatTokens(tokenUsage.tokenLimit)}
                   </span>
@@ -341,9 +368,9 @@ export default function SettingsPage() {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {tokenUsage.plan === "free"
-                    ? "無料枠（リセットなし）"
+                    ? t("settings.tokenUsage.freeQuota")
                     : tokenUsage.periodEnd
-                      ? `次回リセット: ${new Date(tokenUsage.periodEnd).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}`
+                      ? `${t("settings.tokenUsage.nextReset")} ${new Date(tokenUsage.periodEnd).toLocaleDateString(i18n.language === "ko" ? "ko-KR" : "ja-JP", { month: "long", day: "numeric" })}`
                       : null
                   }
                 </p>
@@ -353,7 +380,7 @@ export default function SettingsPage() {
               {tokenUsage.plan === "free" && (
                 <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
                   <p className="text-sm text-muted-foreground">
-                    無料枠を使い切ると、<span className="font-medium text-foreground">Proプラン</span>へのアップグレードが必要です。Proプランでは月間200万トークンまで利用でき、請求サイクルごとにリセットされます。
+                    {t("settings.freePlanNotice")}
                   </p>
                 </div>
               )}
@@ -364,7 +391,7 @@ export default function SettingsPage() {
             </div>
           ) : (
             <p className="py-4 text-center text-sm text-muted-foreground">
-              使用量を取得できませんでした
+              {t("settings.tokenUsage.fetchError")}
             </p>
           )}
         </CardContent>
@@ -375,13 +402,13 @@ export default function SettingsPage() {
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-primary" />
-            <h2 className="font-serif text-lg font-medium">プロフィール</h2>
+            <h2 className="font-serif text-lg font-medium">{t("settings.profile")}</h2>
           </div>
           <Separator />
 
           {/* User Type */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">あなたは？</label>
+            <label className="text-sm font-medium">{t("settings.userType.title")}</label>
             <div className="flex gap-2">
               <Button
                 variant={userType === "student" ? "default" : "outline"}
@@ -390,7 +417,7 @@ export default function SettingsPage() {
                 onClick={() => setUserType("student")}
               >
                 <GraduationCap className="h-3.5 w-3.5" />
-                学生
+                {t("settings.userType.student")}
               </Button>
               <Button
                 variant={userType === "working" ? "default" : "outline"}
@@ -399,7 +426,7 @@ export default function SettingsPage() {
                 onClick={() => setUserType("working")}
               >
                 <Briefcase className="h-3.5 w-3.5" />
-                社会人
+                {t("settings.userType.working")}
               </Button>
             </div>
           </div>
@@ -408,9 +435,9 @@ export default function SettingsPage() {
           {userType === "student" && (
             <div className="space-y-3 rounded-lg border border-border/40 p-3">
               <div className="space-y-2">
-                <label className="text-sm font-medium">学校</label>
+                <label className="text-sm font-medium">{t("settings.school.type")}</label>
                 <div className="flex flex-wrap gap-1.5">
-                  {(Object.keys(SCHOOL_TYPE_LABELS) as SchoolType[]).map(
+                  {(["junior_high", "high_school", "university", "graduate"] as SchoolType[]).map(
                     (st) => (
                       <Button
                         key={st}
@@ -418,7 +445,7 @@ export default function SettingsPage() {
                         size="sm"
                         onClick={() => setSchoolType(st)}
                       >
-                        {SCHOOL_TYPE_LABELS[st]}
+                        {getSchoolTypeLabel(st)}
                       </Button>
                     )
                   )}
@@ -427,9 +454,9 @@ export default function SettingsPage() {
 
               {schoolType && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">学年</label>
+                  <label className="text-sm font-medium">{t("settings.school.grade")}</label>
                   <div className="flex flex-wrap gap-1.5">
-                    {GRADE_OPTIONS[schoolType].map((opt) => (
+                    {gradeOptions.map((opt) => (
                       <Button
                         key={opt.value}
                         variant={grade === opt.value ? "default" : "outline"}
@@ -445,10 +472,10 @@ export default function SettingsPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  部活・サークル
+                  {t("settings.school.club")}
                 </label>
                 <Input
-                  placeholder="例: サッカー部"
+                  placeholder={t("settings.school.clubPlaceholder")}
                   value={clubActivity}
                   onChange={(e) => setClubActivity(e.target.value)}
                   className="max-w-[250px]"
@@ -458,9 +485,9 @@ export default function SettingsPage() {
               {(schoolType === "university" ||
                 schoolType === "graduate") && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">専攻・学部</label>
+                  <label className="text-sm font-medium">{t("settings.school.major")}</label>
                   <Input
-                    placeholder="例: 情報工学"
+                    placeholder={t("settings.school.majorPlaceholder")}
                     value={major}
                     onChange={(e) => setMajor(e.target.value)}
                     className="max-w-[250px]"
@@ -474,16 +501,16 @@ export default function SettingsPage() {
           {userType === "working" && (
             <div className="space-y-3 rounded-lg border border-border/40 p-3">
               <div className="space-y-2">
-                <label className="text-sm font-medium">職種</label>
+                <label className="text-sm font-medium">{t("settings.work.occupation")}</label>
                 <div className="flex flex-wrap gap-1.5">
-                  {OCCUPATION_OPTIONS.map((occ) => (
+                  {occupationOptions.map((occ) => (
                     <Button
-                      key={occ}
-                      variant={occupation === occ ? "default" : "outline"}
+                      key={occ.value}
+                      variant={occupation === occ.value ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setOccupation(occ)}
+                      onClick={() => setOccupation(occ.value)}
                     >
-                      {occ}
+                      {occ.label}
                     </Button>
                   ))}
                 </div>
@@ -493,9 +520,9 @@ export default function SettingsPage() {
 
           {/* Personal Context */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">自由メモ（任意）</label>
+            <label className="text-sm font-medium">{t("settings.work.personalContext")}</label>
             <Textarea
-              placeholder="英語学習に関連する状況があれば（例: 来月から海外赴任予定）"
+              placeholder={t("settings.work.personalContextPlaceholder")}
               value={personalContext}
               onChange={(e) =>
                 setPersonalContext(e.target.value.slice(0, 200))
@@ -515,12 +542,12 @@ export default function SettingsPage() {
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center gap-2">
             <Target className="h-4 w-4 text-primary" />
-            <h2 className="font-serif text-lg font-medium">学習目標</h2>
+            <h2 className="font-serif text-lg font-medium">{t("settings.learning.goal")}</h2>
           </div>
           <Separator />
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {(Object.entries(GOAL_LABELS) as [Goal, string][]).map(
-              ([key, label]) => (
+            {(["business", "travel", "study_abroad", "daily", "exam"] as Goal[]).map(
+              (key) => (
                 <Button
                   key={key}
                   variant={goal === key ? "default" : "outline"}
@@ -528,7 +555,7 @@ export default function SettingsPage() {
                   onClick={() => setGoal(key)}
                   className="justify-start"
                 >
-                  {label}
+                  {getGoalLabel(key)}
                 </Button>
               )
             )}
@@ -541,32 +568,32 @@ export default function SettingsPage() {
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-primary" />
-            <h2 className="font-serif text-lg font-medium">レベル</h2>
+            <h2 className="font-serif text-lg font-medium">{t("settings.learning.level")}</h2>
           </div>
           <Separator />
           <div className="grid grid-cols-3 gap-2">
-            {(Object.entries(LEVEL_LABELS) as [Level, string][]).map(
-              ([key, label]) => (
+            {(["beginner", "intermediate", "advanced", "native"] as Level[]).map(
+              (key) => (
                 <Button
                   key={key}
                   variant={level === key ? "default" : "outline"}
                   size="sm"
                   onClick={() => setLevel(key)}
                 >
-                  {label}
+                  {getLevelLabel(key)}
                 </Button>
               )
             )}
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              TOEICスコア（任意）
+              {t("onboarding.level.toeicScore")}
             </label>
             <Input
               type="number"
               value={toeicScore}
               onChange={(e) => setToeicScore(e.target.value)}
-              placeholder="例: 650"
+              placeholder={t("onboarding.level.toeicPlaceholder")}
               className="max-w-[200px]"
             />
           </div>
@@ -578,34 +605,34 @@ export default function SettingsPage() {
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-primary" />
-            <h2 className="font-serif text-lg font-medium">興味・趣味</h2>
+            <h2 className="font-serif text-lg font-medium">{t("settings.learning.interests")}</h2>
           </div>
           <Separator />
           <div className="flex flex-wrap gap-2">
-            {INTEREST_OPTIONS.map((interest) => (
+            {interestOptions.map((interest) => (
               <button
-                key={interest}
-                onClick={() => toggleInterest(interest)}
+                key={interest.value}
+                onClick={() => toggleInterest(interest.value)}
                 className={`rounded-full border px-3.5 py-1.5 text-sm transition-all ${
-                  interests.includes(interest)
+                  interests.includes(interest.value)
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-card text-foreground hover:border-primary/30"
                 }`}
               >
-                {interest}
+                {interest.label}
               </button>
             ))}
           </div>
           <div className="space-y-2 pt-2">
-            <label className="text-sm font-medium">好きなもの・詳しいこと（最大5個）</label>
+            <label className="text-sm font-medium">{t("settings.learning.customInterests")}</label>
             <TagInput
               tags={customInterests}
               onTagsChange={setCustomInterests}
-              placeholder="キーワードを入力 → Enterで追加"
+              placeholder={t("settings.learning.customInterestsPlaceholder")}
               maxTags={5}
             />
             <p className="text-xs text-muted-foreground">
-              お題に反映したいキーワードを追加できます
+              {t("settings.learning.customInterestsHint")}
             </p>
           </div>
         </CardContent>
@@ -616,28 +643,56 @@ export default function SettingsPage() {
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center gap-2">
             <Globe className="h-4 w-4 text-primary" />
-            <h2 className="font-serif text-lg font-medium">解説言語</h2>
+            <h2 className="font-serif text-lg font-medium">{t("settings.language.title")}</h2>
           </div>
           <Separator />
-          <div className="flex gap-2">
-            <Button
-              variant={explanationLang === "ja" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setExplanationLang("ja")}
-            >
-              日本語
-            </Button>
-            <Button
-              variant={explanationLang === "en" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setExplanationLang("en")}
-            >
-              English
-            </Button>
+
+          {/* UI Language */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">{t("settings.language.uiLanguage")}</label>
+            <div className="flex gap-2">
+              {(Object.entries(UI_LANGUAGE_LABELS) as [UILanguage, string][]).map(
+                ([key, label]) => (
+                  <Button
+                    key={key}
+                    variant={uiLanguage === key ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleUiLanguageChange(key)}
+                  >
+                    {label}
+                  </Button>
+                )
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t("settings.language.uiLanguageDescription")}
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground">
-            添削結果の解説で使用する言語を選択します
-          </p>
+
+          {/* Explanation Language - options depend on UI language */}
+          <div className="space-y-2 pt-2">
+            <label className="text-sm font-medium">{t("settings.language.explanationLanguage")}</label>
+            <div className="flex gap-2">
+              {/* Native language option (ja for Japanese UI, ko for Korean UI) */}
+              <Button
+                variant={explanationLang === uiLanguage ? "default" : "outline"}
+                size="sm"
+                onClick={() => setExplanationLang(uiLanguage)}
+              >
+                {uiLanguage === "ja" ? "日本語" : "한국어"}
+              </Button>
+              <Button
+                variant={explanationLang === "en" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setExplanationLang("en")}
+              >
+                English
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t("settings.language.explanationLanguageDescription")}
+            </p>
+          </div>
         </CardContent>
       </Card>
 
@@ -652,14 +707,14 @@ export default function SettingsPage() {
           {saved ? (
             <>
               <Check className="h-4 w-4" />
-              保存しました
+              {t("settings.save.saved")}
             </>
           ) : saving ? (
-            "保存中..."
+            t("settings.save.saving")
           ) : (
             <>
               <Save className="h-4 w-4" />
-              設定を保存
+              {t("settings.save.button")}
             </>
           )}
         </Button>
@@ -671,16 +726,16 @@ export default function SettingsPage() {
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-destructive" />
             <h2 className="font-serif text-lg font-medium text-destructive">
-              危険な操作
+              {t("settings.danger.title")}
             </h2>
           </div>
           <Separator className="bg-destructive/20" />
 
           <div className="space-y-3">
             <div>
-              <h3 className="font-medium">アカウントを削除</h3>
+              <h3 className="font-medium">{t("settings.danger.deleteAccount")}</h3>
               <p className="text-sm text-muted-foreground">
-                アカウントを削除すると、すべてのデータ（学習履歴、単語帳、プロフィール）が完全に削除され、復元できなくなります。
+                {t("settings.danger.deleteAccountDescription")}
               </p>
             </div>
 
@@ -697,38 +752,38 @@ export default function SettingsPage() {
                   className="gap-2 border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground"
                 >
                   <Trash2 className="h-4 w-4" />
-                  アカウントを削除
+                  {t("settings.danger.deleteAccount")}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2 text-destructive">
                     <AlertTriangle className="h-5 w-5" />
-                    アカウントを削除しますか？
+                    {t("settings.danger.deleteConfirmTitle")}
                   </DialogTitle>
                   <DialogDescription className="space-y-2 pt-2">
                     <p>
-                      この操作は取り消せません。以下のデータがすべて削除されます：
+                      {t("settings.danger.deleteConfirmDescription")}
                     </p>
                     <ul className="ml-4 list-disc text-left text-sm">
-                      <li>ライティング履歴</li>
-                      <li>単語帳のすべてのエントリ</li>
-                      <li>プロフィール情報</li>
-                      <li>トークン使用量の記録</li>
+                      <li>{t("settings.danger.deleteItems.history")}</li>
+                      <li>{t("settings.danger.deleteItems.vocabulary")}</li>
+                      <li>{t("settings.danger.deleteItems.profile")}</li>
+                      <li>{t("settings.danger.deleteItems.tokens")}</li>
                     </ul>
                   </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-3 py-4">
                   <p className="text-sm">
-                    確認のため、下のフィールドに{" "}
+                    {t("settings.danger.deleteInputLabel")}{" "}
                     <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-destructive">
                       DELETE
                     </code>{" "}
-                    と入力してください。
+                    {t("settings.danger.deleteInputHint")}
                   </p>
                   <Input
-                    placeholder="DELETEと入力"
+                    placeholder={t("settings.danger.deleteInputPlaceholder")}
                     value={deleteConfirmation}
                     onChange={(e) => setDeleteConfirmation(e.target.value)}
                     className="font-mono"
@@ -744,7 +799,7 @@ export default function SettingsPage() {
                     onClick={() => setDeleteDialogOpen(false)}
                     disabled={deleting}
                   >
-                    キャンセル
+                    {t("settings.danger.cancel")}
                   </Button>
                   <Button
                     variant="destructive"
@@ -755,12 +810,12 @@ export default function SettingsPage() {
                     {deleting ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        削除中...
+                        {t("settings.danger.deleting")}
                       </>
                     ) : (
                       <>
                         <Trash2 className="h-4 w-4" />
-                        完全に削除する
+                        {t("settings.danger.deleteButton")}
                       </>
                     )}
                   </Button>

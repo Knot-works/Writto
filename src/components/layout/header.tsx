@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/auth-context";
 import { useToken } from "@/contexts/token-context";
@@ -33,22 +34,18 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-const PLAN_LABELS = {
-  free: "無料プラン",
-  pro: "Pro",
-};
-
-const PRO_FEATURES = [
-  { icon: Infinity, text: "月間2,000,000トークン", highlight: true },
-  { icon: Zap, text: "高精度モデルで添削", highlight: true },
-  { icon: BookOpen, text: "学習履歴・単語帳が無制限" },
-  { icon: Camera, text: "手書き文字認識（OCR）", highlight: true },
+const PRO_FEATURE_KEYS = [
+  { icon: Infinity, key: "tokens", highlight: true },
+  { icon: Zap, key: "highAccuracy", highlight: true },
+  { icon: BookOpen, key: "unlimitedHistory", highlight: false },
+  { icon: Camera, key: "ocr", highlight: true },
 ];
 
 // Shared modal content class
 const MODAL_CONTENT_CLASS = "fixed left-1/2 top-1/2 z-50 w-full max-w-xl -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-border/60 bg-card p-0 shadow-2xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95";
 
 export function Header() {
+  const { t } = useTranslation("app");
   const { user, profile, signOut, refreshProfile } = useAuth();
   const { tokenUsage, refresh: refreshTokenUsage } = useToken();
   const { isOpen: upgradeModalOpen, open: openUpgradeModal, close: closeUpgradeModal } = useUpgradeModal();
@@ -81,13 +78,13 @@ export function Header() {
     setIsDeleting(true);
     try {
       await callDeleteAccount();
-      toast.success("アカウントを削除しました");
+      toast.success(t("header.accountDeleted"));
       setDeleteModalOpen(false);
       setUserModalOpen(false);
       signOut();
     } catch (error) {
       console.error("Failed to delete account:", error);
-      toast.error("アカウントの削除に失敗しました");
+      toast.error(t("header.accountDeleteFailed"));
     } finally {
       setIsDeleting(false);
     }
@@ -166,7 +163,7 @@ export function Header() {
       }
     } catch (error) {
       console.error("Checkout error:", error);
-      toast.error("決済の開始に失敗しました");
+      toast.error(t("header.checkoutFailed"));
     } finally {
       setIsUpdatingPlan(false);
     }
@@ -191,19 +188,19 @@ export function Header() {
           {/* Navigation */}
           <nav className="hidden items-center gap-1 md:flex">
             <NavLink to="/dashboard" active={isActive("/dashboard")}>
-              ホーム
+              {t("navigation.home")}
             </NavLink>
             <NavLink to="/write" active={isActive("/write") || location.pathname.startsWith("/write/")}>
-              ライティング
+              {t("navigation.writing")}
             </NavLink>
             <NavLink to="/vocabulary" active={isActive("/vocabulary")}>
-              単語帳
+              {t("navigation.vocabulary")}
             </NavLink>
             <NavLink to="/mistakes" active={isActive("/mistakes")}>
-              間違いノート
+              {t("navigation.mistakes")}
             </NavLink>
             <NavLink to="/history" active={isActive("/history")}>
-              履歴
+              {t("navigation.history")}
             </NavLink>
           </nav>
 
@@ -218,7 +215,7 @@ export function Header() {
                   className="hidden gap-1.5 rounded-full bg-gradient-to-r from-accent to-orange-500 text-white hover:from-accent/90 hover:to-orange-500/90 sm:flex btn-bounce"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
-                  <span>アップグレード</span>
+                  <span>{t("navigation.upgrade")}</span>
                 </Button>
               ) : (
                 <button
@@ -259,7 +256,7 @@ export function Header() {
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
           <DialogPrimitive.Content className={MODAL_CONTENT_CLASS} aria-describedby={undefined}>
             <DialogPrimitive.Title asChild>
-              <VisuallyHidden.Root>プロフィール</VisuallyHidden.Root>
+              <VisuallyHidden.Root>{t("header.profile")}</VisuallyHidden.Root>
             </DialogPrimitive.Title>
             {/* Header */}
             <div className="px-8 pt-8 pb-6 text-center">
@@ -276,11 +273,11 @@ export function Header() {
                 className="mt-3 rounded-full px-3"
               >
                 {isFreePlan ? (
-                  PLAN_LABELS[plan as keyof typeof PLAN_LABELS]
+                  t("header.freePlan")
                 ) : (
                   <span className="flex items-center gap-1">
                     <Crown className="h-3 w-3" />
-                    {PLAN_LABELS[plan as keyof typeof PLAN_LABELS]}
+                    {t("navigation.pro")}
                   </span>
                 )}
               </Badge>
@@ -294,12 +291,12 @@ export function Header() {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Coins className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-medium">トークン使用量</span>
+                      <span className="text-sm font-medium">{t("header.tokenUsage")}</span>
                     </div>
                     <span className="text-xs text-muted-foreground">
                       {tokenUsage.plan === "free"
-                        ? "無料枠"
-                        : `${tokenUsage.daysUntilReset}日後リセット`
+                        ? t("header.freeQuota")
+                        : t("header.resetIn", { days: tokenUsage.daysUntilReset })
                       }
                     </span>
                   </div>
@@ -320,8 +317,8 @@ export function Header() {
                       />
                     </div>
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{formatTokens(tokenUsage.tokensUsed)} 使用</span>
-                      <span>{formatTokens(tokenUsage.tokenLimit)} 上限</span>
+                      <span>{t("header.used", { tokens: formatTokens(tokenUsage.tokensUsed) })}</span>
+                      <span>{t("header.limit", { tokens: formatTokens(tokenUsage.tokenLimit) })}</span>
                     </div>
                   </div>
                 </div>
@@ -342,9 +339,9 @@ export function Header() {
                         <Sparkles className="h-5 w-5 text-accent" />
                       </div>
                       <div>
-                        <p className="font-medium">Proにアップグレード</p>
+                        <p className="font-medium">{t("header.upgradeToPro")}</p>
                         <p className="text-sm text-muted-foreground">
-                          月額¥{yearlyMonthlyEquivalent}〜
+                          {t("header.fromMonthly", { price: yearlyMonthlyEquivalent })}
                         </p>
                       </div>
                     </div>
@@ -363,7 +360,7 @@ export function Header() {
                   className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors hover:bg-muted/50"
                 >
                   <Settings className="h-5 w-5 text-muted-foreground" />
-                  <span>設定</span>
+                  <span>{t("navigation.settings")}</span>
                 </button>
                 <div className="my-2 border-t border-border/60" />
                 <button
@@ -371,7 +368,7 @@ export function Header() {
                   className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                 >
                   <LogOut className="h-5 w-5" />
-                  <span>ログアウト</span>
+                  <span>{t("navigation.logout")}</span>
                 </button>
                 <button
                   onClick={() => {
@@ -381,7 +378,7 @@ export function Header() {
                   className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                 >
                   <Trash2 className="h-5 w-5" />
-                  <span>アカウント削除</span>
+                  <span>{t("header.deleteAccount")}</span>
                 </button>
               </div>
 
@@ -401,10 +398,10 @@ export function Header() {
                 <Crown className="h-8 w-8 text-primary" />
               </div>
               <DialogPrimitive.Title className="mt-4 font-serif text-2xl">
-                Proにアップグレード
+                {t("header.upgradeToPro")}
               </DialogPrimitive.Title>
               <p className="mt-2 text-sm text-muted-foreground">
-                より快適に英語ライティングを学習
+                {t("header.upgradeSubtitle")}
               </p>
             </div>
 
@@ -415,11 +412,11 @@ export function Header() {
                 <div className="mb-6 rounded-xl border border-accent/30 bg-gradient-to-r from-accent/5 to-orange-500/5 p-3 text-center">
                   <div className="flex items-center justify-center gap-2 text-accent text-sm">
                     <Rocket className="h-4 w-4" />
-                    <span className="font-medium">ローンチ記念価格</span>
-                    <span className="text-xs text-accent/70">〜2026年5月末</span>
+                    <span className="font-medium">{t("header.launchPrice")}</span>
+                    <span className="text-xs text-accent/70">{t("header.launchPeriod")}</span>
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    期間中のご購入分に適用。期間終了後は通常価格での更新となります。
+                    {t("header.launchPriceNote")}
                   </p>
                 </div>
               )}
@@ -438,14 +435,14 @@ export function Header() {
                     onClick={() => handleBillingChange("monthly")}
                     className={`billing-toggle-option ${billingCycle === "monthly" ? "active" : ""}`}
                   >
-                    月ごと
+                    {t("header.monthly")}
                   </button>
                   <button
                     ref={yearlyRef}
                     onClick={() => handleBillingChange("yearly")}
                     className={`billing-toggle-option ${billingCycle === "yearly" ? "active" : ""}`}
                   >
-                    年ごと
+                    {t("header.yearly")}
                     <span className="discount-badge absolute -right-1 -top-1 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm">
                       -20%
                     </span>
@@ -475,7 +472,7 @@ export function Header() {
                           )}
                         </div>
                         <p className="mt-2 text-sm text-muted-foreground">
-                          ¥{yearlyPrice.toLocaleString()} 年払い
+                          {t("header.yearlyBilling", { price: yearlyPrice.toLocaleString() })}
                           {isLaunchPeriod && (
                             <span className="ml-2 text-muted-foreground/60 line-through">
                               ¥{regularYearlyPrice.toLocaleString()}
@@ -497,7 +494,7 @@ export function Header() {
                           )}
                         </div>
                         <p className="mt-2 text-sm text-muted-foreground">
-                          毎月の請求
+                          {t("header.monthlyBilling")}
                         </p>
                       </>
                     )}
@@ -506,7 +503,7 @@ export function Header() {
 
                 {/* Features */}
                 <ul className="space-y-3.5 mb-8">
-                  {PRO_FEATURES.map((feature, idx) => (
+                  {PRO_FEATURE_KEYS.map((feature, idx) => (
                     <li
                       key={idx}
                       className="feature-item flex items-center gap-3"
@@ -522,7 +519,7 @@ export function Header() {
                         <feature.icon className="h-4 w-4" />
                       </div>
                       <span className={feature.highlight ? "font-medium" : ""}>
-                        {feature.text}
+                        {t(`header.proFeatures.${feature.key}`)}
                       </span>
                     </li>
                   ))}
@@ -540,13 +537,13 @@ export function Header() {
                   ) : (
                     <Crown className="h-5 w-5" />
                   )}
-                  {isUpdatingPlan ? "処理中..." : "Proプランをはじめる"}
+                  {isUpdatingPlan ? t("common.processing") : t("header.startProPlan")}
                 </Button>
               </div>
 
               {/* Footer */}
               <p className="mt-5 text-center text-sm text-muted-foreground">
-                いつでもキャンセル可能
+                {t("header.cancelAnytime")}
               </p>
             </div>
           </DialogPrimitive.Content>
@@ -564,10 +561,10 @@ export function Header() {
                 <AlertTriangle className="h-8 w-8 text-destructive" />
               </div>
               <DialogPrimitive.Title className="mt-4 font-serif text-2xl">
-                アカウントを削除しますか？
+                {t("header.deleteAccountConfirm")}
               </DialogPrimitive.Title>
               <p className="mt-2 text-sm text-muted-foreground">
-                この操作は取り消せません
+                {t("header.cannotUndo")}
               </p>
             </div>
 
@@ -575,13 +572,13 @@ export function Header() {
             <div className="px-8 pb-8">
               <div className="mb-6 rounded-2xl border border-destructive/20 bg-destructive/5 p-4">
                 <p className="text-sm text-muted-foreground">
-                  以下のデータがすべて削除されます：
+                  {t("header.deleteWarning")}
                 </p>
                 <ul className="mt-2 space-y-1 text-sm">
-                  <li>• ライティング履歴</li>
-                  <li>• 単語帳</li>
-                  <li>• プロフィール情報</li>
-                  <li>• アカウント情報</li>
+                  <li>• {t("header.deleteItems.history")}</li>
+                  <li>• {t("header.deleteItems.vocabulary")}</li>
+                  <li>• {t("header.deleteItems.profile")}</li>
+                  <li>• {t("header.deleteItems.account")}</li>
                 </ul>
               </div>
 
@@ -592,7 +589,7 @@ export function Header() {
                   onClick={() => setDeleteModalOpen(false)}
                   disabled={isDeleting}
                 >
-                  キャンセル
+                  {t("common.cancel")}
                 </Button>
                 <Button
                   variant="destructive"
@@ -603,12 +600,12 @@ export function Header() {
                   {isDeleting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      削除中...
+                      {t("header.deleting")}
                     </>
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4" />
-                      削除する
+                      {t("header.delete")}
                     </>
                   )}
                 </Button>

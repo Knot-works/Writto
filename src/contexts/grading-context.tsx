@@ -73,11 +73,15 @@ export function GradingProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         // Call grading API
+        // Use uiLanguage for Korean users, otherwise use explanationLang
+        const gradingLang = request.profile.uiLanguage === "ko"
+          ? "ko"
+          : request.profile.explanationLang;
         const feedback = await callGradeWriting(
           request.profile,
           request.prompt,
           request.userAnswer,
-          request.profile.explanationLang
+          gradingLang
         );
 
         // Save to Firestore

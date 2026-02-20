@@ -80,10 +80,11 @@ export interface DailyPrompts {
 export async function callGeneratePrompt(
   profile: UserProfile,
   mode: string,
-  customInput?: string
+  customInput?: string,
+  lang?: "ja" | "ko"
 ): Promise<PromptResponse> {
   const fn = httpsCallable<
-    { profile: ProfileData; mode: string; customInput?: string },
+    { profile: ProfileData; mode: string; customInput?: string; lang?: string },
     PromptResponse
   >(functions, "generatePrompt");
 
@@ -91,6 +92,7 @@ export async function callGeneratePrompt(
     profile: toProfileData(profile),
     mode,
     customInput,
+    lang: lang || "ja",
   });
 
   return result.data;
@@ -100,7 +102,7 @@ export async function callGradeWriting(
   profile: UserProfile,
   prompt: string,
   userAnswer: string,
-  lang?: "ja" | "en"
+  lang?: "ja" | "en" | "ko"
 ): Promise<WritingFeedback> {
   const fn = httpsCallable<
     { profile: ProfileData; prompt: string; userAnswer: string; lang?: string },
@@ -119,7 +121,7 @@ export async function callGradeWriting(
 
 export async function callLookupWord(
   query: string,
-  lang?: "ja" | "en"
+  lang?: "ja" | "en" | "ko"
 ): Promise<LookupResponse> {
   const fn = httpsCallable<
     { query: string; lang?: string },
@@ -152,7 +154,7 @@ export interface AskFollowUpRequest {
     suggested: string;
     explanation: string;
   };
-  lang?: "ja" | "en";
+  lang?: "ja" | "en" | "ko";
 }
 
 export interface AskFollowUpResponse {
@@ -194,12 +196,12 @@ export function getRateLimitMessage(error: unknown): string {
   return "利用上限に達しました。";
 }
 
-export async function callGetDailyPrompts(): Promise<DailyPrompts> {
-  const fn = httpsCallable<Record<string, never>, DailyPrompts>(
+export async function callGetDailyPrompts(lang?: "ja" | "ko"): Promise<DailyPrompts> {
+  const fn = httpsCallable<{ lang?: string }, DailyPrompts>(
     functions,
     "getDailyPrompts"
   );
-  const result = await fn({});
+  const result = await fn({ lang: lang || "ja" });
   return result.data;
 }
 
@@ -358,6 +360,7 @@ export interface GenerateVocabularyRequest {
   vocabType: VocabGenerationType;
   count: number;
   level: "beginner" | "intermediate" | "advanced" | "native";
+  lang?: "ja" | "ko";
 }
 
 export interface GeneratedVocabItem {
