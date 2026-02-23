@@ -47,6 +47,11 @@ export default function PricingPage() {
     title: "料金プラン",
     description: "Writtoの料金プラン。無料プランで始めて、Proプランでさらに充実した学習体験を。月額980円から。",
     canonical: "/pricing",
+    hreflang: [
+      { lang: "ja", url: "/pricing" },
+      { lang: "ko", url: "/ko/pricing" },
+      { lang: "x-default", url: "/pricing" },
+    ],
   });
 
   const { user, profile } = useAuth();

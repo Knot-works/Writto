@@ -9,6 +9,11 @@ export default function TermsPage() {
     title: "利用規約",
     description: "Writtoの利用規約。サービスをご利用いただく際の条件をご確認ください。",
     canonical: "/terms",
+    hreflang: [
+      { lang: "ja", url: "/terms" },
+      { lang: "ko", url: "/ko/terms" },
+      { lang: "x-default", url: "/terms" },
+    ],
   });
 
   return (

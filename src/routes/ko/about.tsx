@@ -28,6 +28,11 @@ export default function AboutPageKo() {
     title: "Writto 소개",
     description: "Writto는 '쓸 수 있는' 자신이 되기 위한 AI 영어 라이팅 학습 서비스. 개인의 목표와 관심사에 맞춘 학습 경험을 제공합니다.",
     canonical: "/ko/about",
+    hreflang: [
+      { lang: "ja", url: "/about" },
+      { lang: "ko", url: "/ko/about" },
+      { lang: "x-default", url: "/about" },
+    ],
   });
 
   return (

@@ -201,6 +201,11 @@ export default function FAQPageKo() {
     title: "자주 묻는 질문",
     description: "Writto에 관한 자주 묻는 질문과 답변. 서비스 내용, 요금 플랜, 기능, 계정에 대해 답변합니다.",
     canonical: "/ko/faq",
+    hreflang: [
+      { lang: "ja", url: "/faq" },
+      { lang: "ko", url: "/ko/faq" },
+      { lang: "x-default", url: "/faq" },
+    ],
     structuredData: FAQ_STRUCTURED_DATA,
   });
 

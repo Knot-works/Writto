@@ -9,6 +9,11 @@ export default function PrivacyPageKo() {
     title: "개인정보 처리방침",
     description: "Writto 개인정보 처리방침. 개인정보 취급에 대해 설명합니다.",
     canonical: "/ko/privacy",
+    hreflang: [
+      { lang: "ja", url: "/privacy" },
+      { lang: "ko", url: "/ko/privacy" },
+      { lang: "x-default", url: "/privacy" },
+    ],
   });
 
   return (

@@ -46,6 +46,11 @@ export default function ContactPage() {
     title: "お問い合わせ",
     description: "Writtoへのお問い合わせ。ご質問、ご要望、不具合報告などお気軽にご連絡ください。",
     canonical: "/contact",
+    hreflang: [
+      { lang: "ja", url: "/contact" },
+      { lang: "ko", url: "/ko/contact" },
+      { lang: "x-default", url: "/contact" },
+    ],
   });
 
   const { user } = useAuth();

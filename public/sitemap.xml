@@ -1,50 +1,135 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://writto.knotwith.com/</loc>
-    <lastmod>2026-02-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://writto.knotwith.com/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://writto.knotwith.com/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://writto.knotwith.com/"/>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://writto.knotwith.com/ko</loc>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://writto.knotwith.com/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://writto.knotwith.com/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://writto.knotwith.com/"/>
+    <lastmod>2026-02-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://writto.knotwith.com/pricing</loc>
-    <lastmod>2026-02-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://writto.knotwith.com/pricing"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://writto.knotwith.com/ko/pricing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://writto.knotwith.com/pricing"/>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://writto.knotwith.com/ko/pricing</loc>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://writto.knotwith.com/pricing"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://writto.knotwith.com/ko/pricing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://writto.knotwith.com/pricing"/>
+    <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://writto.knotwith.com/about</loc>
-    <lastmod>2026-02-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://writto.knotwith.com/about"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://writto.knotwith.com/ko/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://writto.knotwith.com/about"/>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://writto.knotwith.com/ko/about</loc>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://writto.knotwith.com/about"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://writto.knotwith.com/ko/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://writto.knotwith.com/about"/>
+    <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://writto.knotwith.com/faq</loc>
-    <lastmod>2026-02-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://writto.knotwith.com/faq"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://writto.knotwith.com/ko/faq"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://writto.knotwith.com/faq"/>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://writto.knotwith.com/ko/faq</loc>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://writto.knotwith.com/faq"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://writto.knotwith.com/ko/faq"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://writto.knotwith.com/faq"/>
+    <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://writto.knotwith.com/contact</loc>
-    <lastmod>2026-02-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://writto.knotwith.com/contact"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://writto.knotwith.com/ko/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://writto.knotwith.com/contact"/>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://writto.knotwith.com/ko/contact</loc>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://writto.knotwith.com/contact"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://writto.knotwith.com/ko/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://writto.knotwith.com/contact"/>
+    <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://writto.knotwith.com/privacy</loc>
-    <lastmod>2026-02-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://writto.knotwith.com/privacy"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://writto.knotwith.com/ko/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://writto.knotwith.com/privacy"/>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://writto.knotwith.com/ko/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://writto.knotwith.com/privacy"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://writto.knotwith.com/ko/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://writto.knotwith.com/privacy"/>
+    <lastmod>2026-02-23</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://writto.knotwith.com/terms</loc>
-    <lastmod>2026-02-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://writto.knotwith.com/terms"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://writto.knotwith.com/ko/terms"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://writto.knotwith.com/terms"/>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://writto.knotwith.com/ko/terms</loc>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://writto.knotwith.com/terms"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://writto.knotwith.com/ko/terms"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://writto.knotwith.com/terms"/>
+    <lastmod>2026-02-23</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://writto.knotwith.com/legal/commercial</loc>
-    <lastmod>2026-02-13</lastmod>
+    <lastmod>2026-02-23</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

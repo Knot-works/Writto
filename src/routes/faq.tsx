@@ -202,6 +202,11 @@ export default function FAQPage() {
     description: "Writtoに関するよくある質問と回答。サービス内容、料金プラン、機能、アカウントについてお答えします。",
     canonical: "/faq",
     structuredData: FAQ_STRUCTURED_DATA,
+    hreflang: [
+      { lang: "ja", url: "/faq" },
+      { lang: "ko", url: "/ko/faq" },
+      { lang: "x-default", url: "/faq" },
+    ],
   });
 
   const [openIndex, setOpenIndex] = useState<number | null>(null);

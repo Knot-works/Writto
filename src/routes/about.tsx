@@ -28,6 +28,11 @@ export default function AboutPage() {
     title: "Writtoについて",
     description: "Writtoは「書ける」自分になるためのAI英語ライティング学習サービス。一人ひとりの目標と興味に合わせた学習体験を提供します。",
     canonical: "/about",
+    hreflang: [
+      { lang: "ja", url: "/about" },
+      { lang: "ko", url: "/ko/about" },
+      { lang: "x-default", url: "/about" },
+    ],
   });
 
   return (

@@ -46,6 +46,11 @@ export default function PricingPageKo() {
     title: "요금 플랜",
     description: "Writto 요금 플랜. 무료 플랜으로 시작하고, Pro 플랜으로 더 풍부한 학습 경험을. 월 980엔부터.",
     canonical: "/ko/pricing",
+    hreflang: [
+      { lang: "ja", url: "/pricing" },
+      { lang: "ko", url: "/ko/pricing" },
+      { lang: "x-default", url: "/pricing" },
+    ],
   });
 
   const { user, profile } = useAuth();

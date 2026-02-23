@@ -9,6 +9,11 @@ export default function TermsPageKo() {
     title: "이용약관",
     description: "Writto 이용약관. 서비스 이용 시 조건을 확인해 주세요.",
     canonical: "/ko/terms",
+    hreflang: [
+      { lang: "ja", url: "/terms" },
+      { lang: "ko", url: "/ko/terms" },
+      { lang: "x-default", url: "/terms" },
+    ],
   });
 
   return (

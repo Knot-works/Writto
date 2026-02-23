@@ -46,6 +46,11 @@ export default function ContactPageKo() {
     title: "문의하기",
     description: "Writto 문의. 질문, 요청, 버그 신고 등 편하게 연락해 주세요.",
     canonical: "/ko/contact",
+    hreflang: [
+      { lang: "ja", url: "/contact" },
+      { lang: "ko", url: "/ko/contact" },
+      { lang: "x-default", url: "/contact" },
+    ],
   });
 
   const { user } = useAuth();

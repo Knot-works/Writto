@@ -9,6 +9,11 @@ export default function PrivacyPage() {
     title: "プライバシーポリシー",
     description: "Writtoのプライバシーポリシー。個人情報の取り扱いについてご説明します。",
     canonical: "/privacy",
+    hreflang: [
+      { lang: "ja", url: "/privacy" },
+      { lang: "ko", url: "/ko/privacy" },
+      { lang: "x-default", url: "/privacy" },
+    ],
   });
 
   return (

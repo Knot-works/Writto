@@ -65,6 +65,11 @@ const FEATURES = [
 export default function LandingPage() {
   useSEO({
     canonical: "/",
+    hreflang: [
+      { lang: "ja", url: "/" },
+      { lang: "ko", url: "/ko" },
+      { lang: "x-default", url: "/" },
+    ],
   });
 
   return (
